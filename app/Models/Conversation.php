@@ -22,6 +22,7 @@ class Conversation extends Model
     }
 
     public function recipients(array|int|null $current_guest_id = null) {
+        $current_guest_id = $current_guest_id ?? Guest::current()->id;
         $guest_ids = Participant::where('conversation_id', $this->id)->pluck('guest_id');
 
         if ($current_guest_id !== null) {
