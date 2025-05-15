@@ -1,0 +1,46 @@
+.inner-col-pagination {
+    zoom: 0.85;
+}
+.inner-col-pagination .buttons-wrapper {
+    box-shadow: none;
+}
+
+.webkit-inline-box {
+    display: -webkit-inline-box;
+}
+
+
+.clear-select {
+    position: absolute;
+    right: 0.5rem; /* Adjust the right position */
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: transparent;
+    border: none;
+    color: #777;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    height: 16px;
+    width: 16px;
+    align-items: center;
+    justify-content: center;
+    background: #ececec;
+    border-radius: 50%;
+    right: 5px;
+}
+
+.clear-select i {
+    transform: scale(0.65);
+}
+
+.clear-select:hover {
+    background: #ffe9f6;
+    color: #e24ca6; /* Adjust color on hover */
+}
+
+.clear-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(242, 76, 166, 0.4); /* Focus ring */
+}
