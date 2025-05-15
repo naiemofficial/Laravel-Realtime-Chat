@@ -12,4 +12,8 @@ class Message extends Model
         'text',
         'type'
     ];
+
+    public function conversation(){
+        return $this->belongsTo(Conversation::class);
+    }
 }

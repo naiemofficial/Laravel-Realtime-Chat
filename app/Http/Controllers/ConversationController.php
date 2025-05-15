@@ -98,7 +98,10 @@ class ConversationController extends Controller
      */
     public function show(Conversation $conversation)
     {
-        //
+        $messages = $conversation->messages();
+        return response()->json([
+            'messages' => $messages
+        ]);
     }
 
     /**

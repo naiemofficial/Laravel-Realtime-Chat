@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Chat;
 
+use App\Models\Conversation;
 use Livewire\Component;
 use App\Helpers\Filter;
 use App\Models\Guest;
@@ -11,6 +12,13 @@ class Conversations extends Component
 {
     public array $filter = [];
     public array $search = [];
+
+
+    public function openConversation(int $id){
+        $this->dispatch('view-conversation', id: $id);
+    }
+
+
 
     public function render()
     {

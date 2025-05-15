@@ -15,7 +15,7 @@
         type="submit"
         wire:click="submit"
         wire:loading.attr="disabled"
-        class="min-w-[80px] ml-2 bg-blue-600 text-white px-4 py-1 rounded-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm cursor-pointer disabled:cursor-not-allowed"
+        class="min-w-[80px] ml-2 bg-gray-800 text-white px-4 py-1 rounded-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 text-sm cursor-pointer disabled:cursor-not-allowed"
     >
         Submit
     </button>

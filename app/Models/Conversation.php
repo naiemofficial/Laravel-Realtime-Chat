@@ -34,4 +34,8 @@ class Conversation extends Model
 
         return Guest::whereIn('id', $guest_ids)->get() ?? null;
     }
+
+    public function messages(){
+        return $this->hasMany(Message::class)->get();
+    }
 }
