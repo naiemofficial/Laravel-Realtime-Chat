@@ -23,12 +23,14 @@ class AddConversation extends Component
             return $ConversationController->store($request);
         });
 
-        if($response->isSuccessful()){
-            $this->reset();
-        }
-
         $this->dispatch('refresh-conversation-alert', response: $response);
 
+        if($response->isSuccessful()){
+            $this->reset();
+            $this->dispatch('refresh-conversations'); // Conversation  Created
+            $createdConversationId = $response->getData()?->conversation_id;
+            $this->dispatch('open-Conversation', id: $createdConversationId);
+        }
     }
 
 

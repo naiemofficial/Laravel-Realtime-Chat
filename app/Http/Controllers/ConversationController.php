@@ -58,9 +58,10 @@ class ConversationController extends Controller
 
 
             // Check if conversation exists or not
-            if(Conversation::existsWith($CurrentGuest, $Recipient)){
+            if($Conversation = Conversation::existsWith($CurrentGuest, $Recipient)){
                 return response()->json([
-                    'info' => 'A Conversation already exists with ' . $Recipient->name . "($Recipient->uid)"
+                    'info' => 'A Conversation already exists with ' . $Recipient->name . "($Recipient->uid)",
+                    'conversation_id' => $Conversation->id
                 ], 200);
             }
 

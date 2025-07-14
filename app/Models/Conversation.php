@@ -12,9 +12,7 @@ class Conversation extends Model
         $shared_conversation_id  = Participant::whereIn('conversation_id', $guest_1_conversation_ids)
                                     ->where('guest_id', $guest_2->id)
                                     ->pluck('conversation_id')->first();
-
-        $Conversation = ($shared_conversation_id ? self::find($shared_conversation_id) : null);
-        return $Conversation;
+        return ($guest_1_conversation_ids->contains($shared_conversation_id) ? self::find($shared_conversation_id) : null);
     }
 
     public function recipient(array|int|null $current_guest_id = null) {
