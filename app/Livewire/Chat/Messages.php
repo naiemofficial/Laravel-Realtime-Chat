@@ -14,13 +14,17 @@ class Messages extends Component
 {
     public $messages = [];
     public $recipient = null;
+    public $Conversation = null;
     public $currentGuest = null;
     public $conversationSelected = false;
+    public $conversationId;
 
 
     #[On('view-conversation')]
     public function viewConversation($id){
-        $Conversation = Conversation::find($id);
+        $this->Conversation = Conversation::find($id);
+        $Conversation  = $this->Conversation;
+        $this->conversationId = $id;
 
 
         request()->attributes->set('suggestion', true);
@@ -35,6 +39,16 @@ class Messages extends Component
             $this->conversationSelected = true;
         }
     }
+
+
+    #[On('refresh-messages')]
+    public function refreshMessages($conversationId){
+        $ConversationController = app(ConversationController::class);
+        $Conversation = Conversation::find($conversationId);
+        $response = $ConversationController->show($Conversation);
+        $this->messages = $response->getData()->messages;
+    }
+
 
     public function sender($id){
         return Guest::find($id);

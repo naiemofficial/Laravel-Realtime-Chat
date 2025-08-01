@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Conversation;
+use App\Models\Guest;
 use Illuminate\Http\Request;
 use App\Models\Message;
+use Illuminate\Validation\Rule;
 
 class MessageController extends Controller
 {
@@ -20,7 +23,7 @@ class MessageController extends Controller
      */
     public function create()
     {
-        //
+
     }
 
     /**
@@ -28,7 +31,31 @@ class MessageController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $CurrentGuest = Guest::current();
+
+            $validated = $request->validate([
+                'conversation_id'   => ['required', Rule::exists('conversations', 'id')],
+                'message'           => ['required', 'string'],
+            ]);
+
+            $Message = Message::create([
+                'conversation_id'   => $validated['conversation_id'],
+                'sender_id'         => $CurrentGuest->id,
+                'text'              => $validated['message'],
+                'type'              => 'regular'
+            ]);
+
+            return response()->json([
+                'success' => 'Message sent successfully',
+                'message' => $Message
+            ], 201);
+        } catch (\Exception $e){
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
     }
 
     /**

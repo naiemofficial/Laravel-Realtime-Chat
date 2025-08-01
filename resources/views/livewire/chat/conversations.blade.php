@@ -12,14 +12,14 @@
                     wire:key="{{ $conversation->id }}"
                     wire:click="openConversation({{ $conversation->id }})"
                     x-data="{ show: false }"
-                    x-init="setTimeout(() => show = true, {{ $index * 80 }})"
+                    x-init="setTimeout(() => show = true, {{ $animation ? ($index * 80) : 0 }})"
                     x-show="show"
                     x-transition.duration.300ms
+                    style="transition: 0.3s"
                     @class([
                         'flex justify-between gap-x-6 px-3 py-3 transition-[0.3s] bg-white rounded-sm cursor-pointer',
                         'ring-2 ring-blue-400' => $openedConversation === $conversation->id,
                     ])
-                    style="transition: 0.3s"
                     aria-selected="{{ $openedConversation === $conversation->id ? 'true' : 'false' }}"
                 >
                     <div class="flex min-w-0 gap-x-4">
@@ -27,7 +27,7 @@
                                 <i class="fa-duotone fa-solid fa-user"></i>
                             </span>
                         <div class="min-w-0 flex-auto">
-                            <p class="text-sm/6 font-semibold text-gray-900">{{ $conversation->recipient($currentGuest->id)->name }}</p>
+                            <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $conversation->recipient($currentGuest->id)->name }}</p>
                             <p class="mt-1 truncate text-xs/5 text-gray-500">{{ $conversation->recipient($currentGuest->id)->uid }}</p>
                         </div>
                     </div>

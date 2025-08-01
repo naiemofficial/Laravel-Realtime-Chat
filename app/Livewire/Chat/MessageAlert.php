@@ -3,15 +3,15 @@
 namespace App\Livewire\Chat;
 
 use App\Helpers\Response;
-use App\Models\Conversation;
+use App\Models\Message;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class ConversationAlert extends Component
+class MessageAlert extends Component
 {
-    #[On('refresh-conversation-alert')]
-    public function refreshConversationAlert($response): void {
-        Response::visualize(Conversation::class, $response, [
+    #[On('refresh-message-alert')]
+    public function refreshMessageAlert($response): void {
+        Response::visualize(Message::class, $response, [
             'session-flash' => true,
             'template' => [
                 'key' => 'textOnly',
@@ -24,8 +24,8 @@ class ConversationAlert extends Component
 
     public function render()
     {
-        return view('livewire.chat.conversation-alert', [
-            'className' => Conversation::class
+        return view('livewire.chat.message-alert', [
+            'className' => Message::class
         ]);
     }
 }

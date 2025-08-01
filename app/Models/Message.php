@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
+    protected $touches = ['conversation'];
+
     protected $fillable = [
         'conversation_id',
         'sender_id',

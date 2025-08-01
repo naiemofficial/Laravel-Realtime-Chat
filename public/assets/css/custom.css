@@ -44,3 +44,22 @@
     outline: none;
     box-shadow: 0 0 0 2px rgba(242, 76, 166, 0.4); /* Focus ring */
 }
+
+
+/* Chat Box */
+ul#chat-box[role="list"] li[data-type="regular"]:last-child {
+    padding-bottom: 15px;
+}
+ul#chat-box[role="list"] li[data-sender="self"] > div {
+    text-align: right;
+}
+.msg-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%; /* places the arrow below the tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent; /* tailwind's gray-800 */
+}

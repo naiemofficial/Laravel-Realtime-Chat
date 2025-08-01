@@ -19,7 +19,7 @@ class AddConversation extends Component
         $response = app(GuestAuth::class)->handle(request(), function($request) use ($uid){
             $request->merge(['uid' => $uid]);
 
-            $ConversationController = new ConversationController();
+            $ConversationController = app(ConversationController::class);
             return $ConversationController->store($request);
         });
 

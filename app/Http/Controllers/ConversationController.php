@@ -69,13 +69,13 @@ class ConversationController extends Controller
 
             // Create Conversation
             $Conversation   = Conversation::create();
-            $Conv_ID = $Conversation->id;
+            $conversationId = $Conversation->id;
 
-            Participant::create(['conversation_id' => $Conv_ID, 'guest_id' => $CurrentGuest->id]);
-            Participant::create(['conversation_id' => $Conv_ID, 'guest_id' => $Recipient->id]);
+            Participant::create(['conversation_id' => $conversationId, 'guest_id' => $CurrentGuest->id]);
+            Participant::create(['conversation_id' => $conversationId, 'guest_id' => $Recipient->id]);
 
             $Message = Message::create([
-                'conversation_id'   => $Conv_ID,
+                'conversation_id'   => $conversationId,
                 'sender_id'         => $CurrentGuest->id,
                 'text'              => 'started conversation',
                 'type'              => 'starter'
@@ -84,7 +84,7 @@ class ConversationController extends Controller
 
             return response()->json([
                 'success' => 'Conversation created!',
-                'conversation_id' => $Conv_ID
+                'conversation_id' => $conversationId
             ], 201);
 
         } catch (\Exception $e){
