@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Guest;
 use Illuminate\Http\Request;
@@ -39,12 +40,22 @@ class MessageController extends Controller
                 'message'           => ['required', 'string'],
             ]);
 
+            $Conversation = Conversation::find($validated['conversation_id']);
+            $Sender         = $CurrentGuest;
+            $message        = $validated['message'];
+
             $Message = Message::create([
-                'conversation_id'   => $validated['conversation_id'],
-                'sender_id'         => $CurrentGuest->id,
-                'text'              => $validated['message'],
+                'conversation_id'   => $Conversation->id,
+                'sender_id'         => $Sender->id,
+                'text'              => $message,
                 'type'              => 'regular'
             ]);
+
+
+
+            // Broadcast the message
+            broadcast(new MessageSent($Conversation, $Sender, $message));
+
 
             return response()->json([
                 'success' => 'Message sent successfully',

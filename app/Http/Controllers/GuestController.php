@@ -6,6 +6,7 @@ use App\Http\Requests\GuestRequest;
 use App\Models\Guest;
 use Illuminate\Http\Request;
 use App\Models\Cookie as DBCookie;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class GuestController extends Controller
@@ -39,6 +40,8 @@ class GuestController extends Controller
             $validated = array_merge($validated, ['uid' => $uid]);
 
             $Guest = Guest::create($validated);
+            Auth::guard('guest')->login($Guest);
+
 
             return response()->json([
                 'key' => 'success',

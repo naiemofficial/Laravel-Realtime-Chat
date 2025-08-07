@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class Conversation extends Model
 {
@@ -15,12 +16,18 @@ class Conversation extends Model
         return ($guest_1_conversation_ids->contains($shared_conversation_id) ? self::find($shared_conversation_id) : null);
     }
 
-    public function recipient(array|int|null $current_guest_id = null) {
-        return $this->recipients($current_guest_id)->first();
+    public function recipient(Guest|array|int|null $guest = null) : ?Guest {
+        if($guest instanceof Guest){
+            $guest = $guest->id;
+        }
+        return $this->recipients($guest)->first();
     }
 
-    public function recipients(array|int|null $current_guest_id = null) {
-        $current_guest_id = $current_guest_id ?? Guest::current()->id;
+    public function recipients(Guest|array|int|null $guest = null) : Collection {
+        if($guest instanceof Guest){
+            $guest = $guest->id;
+        }
+        $current_guest_id = $guest ?? Guest::current()->id;
         $guest_ids = Participant::where('conversation_id', $this->id)->pluck('guest_id');
 
         if ($current_guest_id !== null) {
@@ -31,7 +38,7 @@ class Conversation extends Model
             });
         }
 
-        return Guest::whereIn('id', $guest_ids)->get() ?? null;
+        return Guest::whereIn('id', $guest_ids)->get();
     }
 
     public function messages(){

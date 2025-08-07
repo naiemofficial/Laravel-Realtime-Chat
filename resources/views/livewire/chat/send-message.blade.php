@@ -7,7 +7,7 @@
             wire:loading.attr="disabled"
             wire:target="submit"
             placeholder="Type your message..."
-            class="flex-grow bg-transparent outline-none text-gray-700 placeholder-gray-400] text-sm"
+            class="flex-grow bg-transparent outline-none text-gray-700 placeholder-gray-400] text-sm !border-0 !outline-0 !ring-0"
         >
         <!-- Send Button -->
         <button

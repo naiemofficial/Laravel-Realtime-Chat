@@ -4,8 +4,9 @@ namespace App\Models;
 
 use App\Models\Cookie;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Guest extends Model
+class Guest extends Authenticatable
 {
     public static string $cookie_name = 'guest_session';
     protected $fillable = ['uid', 'name', 'cookie_id'];

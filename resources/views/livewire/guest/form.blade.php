@@ -12,7 +12,7 @@
                         wire:model="name"
                         wire:loading.attr="disabled"
                         wire:target="submit"
-                        type="text" class="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none focus:ring-0 py-1 text-sm disabled:text-gray-500"
+                        type="text" class="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none focus:ring-0 py-1 text-sm disabled:text-gray-500 border-0"
                         placeholder="Your Name"
                     >
                     <button
@@ -31,6 +31,7 @@
             @endif
         </div>
     </div>
+
 
     <script>
         document.addEventListener('click', function (event) {

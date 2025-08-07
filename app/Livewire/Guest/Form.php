@@ -25,6 +25,8 @@ class Form extends Component
         $this->isValidGuest = $this->currentGuest?->validity() ?? false;
         $this->mounted['name'] = $this->currentGuest?->name;
         $this->name = $this->mounted['name'];
+
+        $this->dispatch('guest.updated', $this->currentGuest);
     }
 
     public function submit(){
@@ -33,6 +35,7 @@ class Form extends Component
             // Update if mounted name and current name isn't same
             if($this->name != $this->mounted['name']){
                 app(GuestController::class)->update(request(), Guest::current());
+                $this->currentGuest = Guest::current();
             }
         } else {
             // Add as new
@@ -48,6 +51,8 @@ class Form extends Component
             $this->isValidGuest = $this->currentGuest?->validity() ?? false;
             $this->name = $this->currentGuest?->name;
         }
+
+        $this->dispatch('guest.updated', $this->currentGuest);
     }
 
 
