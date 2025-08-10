@@ -2,13 +2,11 @@
 
 namespace App\Livewire\Chat;
 
-use App\Models\Conversation;
-use Livewire\Attributes\On;
-use Livewire\Attributes\Renderless;
-use Livewire\Component;
 use App\Helpers\Filter;
-use App\Models\Guest;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class Conversations extends Component
@@ -33,7 +31,7 @@ class Conversations extends Component
         $this->animation = isset($data['animation']) ? $data['animation'] : $this->animation;
 
         // Conversations
-        $conversations = Guest::current()?->conversations() ?? new Collection();
+        $conversations = Auth::user()?->conversations() ?? new Collection();
 
         $filter_data = [
             'order' => [
@@ -55,7 +53,6 @@ class Conversations extends Component
         return view('livewire.chat.conversations', [
             'conversations' => $conversations,
             'className'     => $this::class,
-            'currentGuest'  => Guest::current()
         ]);
     }
 }

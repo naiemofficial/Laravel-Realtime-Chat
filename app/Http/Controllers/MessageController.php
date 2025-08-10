@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
 use App\Models\Conversation;
-use App\Models\Guest;
-use Illuminate\Http\Request;
 use App\Models\Message;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class MessageController extends Controller
@@ -33,20 +33,19 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         try {
-            $CurrentGuest = Guest::current();
-
             $validated = $request->validate([
                 'conversation_id'   => ['required', Rule::exists('conversations', 'id')],
                 'message'           => ['required', 'string'],
             ]);
 
             $Conversation = Conversation::find($validated['conversation_id']);
-            $Sender         = $CurrentGuest;
+            $Sender         = Auth::user();
             $message        = $validated['message'];
+
 
             $Message = Message::create([
                 'conversation_id'   => $Conversation->id,
-                'sender_id'         => $Sender->id,
+                'user_id'           => $Sender->id,
                 'text'              => $message,
                 'type'              => 'regular'
             ]);

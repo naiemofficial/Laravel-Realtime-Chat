@@ -3,10 +3,9 @@
 namespace App\Livewire\Chat;
 
 use App\Http\Controllers\ConversationController;
-use App\Http\Middleware\GuestAuth;
+use App\Http\Middleware\UserAuth;
 use App\Models\Conversation;
-use App\Models\Guest;
-use App\Models\Message;
+use App\Models\User;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -15,20 +14,19 @@ class Messages extends Component
     public $messages = [];
     public $recipient = null;
     public $Conversation = null;
-    public $currentGuest = null;
     public $conversationSelected = false;
     public $conversationId;
 
 
     #[On('view-conversation')]
-    public function viewConversation($id){
+    public function viewConversation(int $id){
         $this->Conversation = Conversation::find($id);
         $Conversation  = $this->Conversation;
         $this->conversationId = $id;
 
 
         request()->attributes->set('suggestion', true);
-        $response = app(GuestAuth::class)->handle(request(), function($request) use($Conversation){
+        $response = app(UserAuth::class)->handle(request(), function($request) use($Conversation){
             $ConversationController = app(ConversationController::class);
             return $ConversationController->show($Conversation);
         });
@@ -51,12 +49,11 @@ class Messages extends Component
 
 
     public function sender($id){
-        return Guest::find($id);
+        return User::find($id);
     }
 
     public function render()
     {
-        $this->currentGuest = Guest::current();
         return view('livewire.chat.messages');
     }
 }

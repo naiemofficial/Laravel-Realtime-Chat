@@ -1,12 +1,12 @@
 if(typeof Livewire != "undefined"){
-    Livewire.on('guest.updated', (currentGuest) => {
-        let guest = currentGuest[0];
+    Livewire.on('user.updated', (currentUser) => {
+        let user = currentUser[0];
 
-        console.log(guest);
-        if(guest){
-            console.log(`App.Models.Guest.${guest.id}`);
+        console.log(user);
+        if(user){
+            console.log(`App.Models.User.${user.id}`);
             Echo
-                .private(`App.Models.Guest.${guest.id}`)
+                .private(`App.Models.User.${user.id}`)
                 .listen('MessageSent', (event) => {
                     console.log(event);
                 });

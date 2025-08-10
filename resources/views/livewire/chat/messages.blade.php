@@ -20,8 +20,8 @@ use \Carbon\Carbon;
                     <i class="fa-duotone fa-solid fa-user"></i>
                 </div>
                 <div class="flex flex-col">
-                    <span class="font-semibold text-gray-800 text-sm">{{ $Conversation->recipient($currentGuest->id)->name }}</span>
-                    <span class="text-[0.65rem] text-gray-600">{{ $Conversation->recipient($currentGuest->id)->uid }}</span>
+                    <span class="font-semibold text-gray-800 text-sm">{{ $Conversation->recipient(auth()->user()->id)->name }}</span>
+                    <span class="text-[0.65rem] text-gray-600">{{ $Conversation->recipient(auth()->user()->id)->uid }}</span>
                 </div>
             </div>
         @endif
@@ -35,7 +35,7 @@ use \Carbon\Carbon;
                 x-init="initExecuteDropMessageListener()"
                 >
                     @php
-                        $last_sender_id = 0;
+                        $last_user_id = 0;
                     @endphp
                     @foreach($messages as $index => $message)
                         <li
@@ -44,19 +44,19 @@ use \Carbon\Carbon;
                         x-init="revealAndScroll($el, {{ 100 }})"
                         x-show="show"
                         x-transition.duration.300ms
-                        class="px-8 pt-{{($last_sender_id == $message->sender_id) ? '0' : '3'}} transition-[0.3s] bg-white border-none"
+                        class="px-8 pt-{{($last_user_id == $message->user_id) ? '0' : '3'}} transition-[0.3s] bg-white border-none"
                         style="transition: 0.3s"
                         data-type="{{ $message->type }}"
                         @if($message->type !== 'starter')
-                            data-sender="{{ $currentGuest->id == $message->sender_id ? "self" : "recipient" }}"
+                            data-sender="{{ (auth()->user()->id == $message->user_id) ? "self" : "recipient" }}"
                         @endif
                     >
                         @if($message->type === 'starter')
                             <div class="text-center text-gray-500 text-xs mt-4 mb-10 w-full">
-                                @if($currentGuest->id == $message->sender_id)
+                                @if(auth()->user()->id == $message->user_id)
                                     You {{ $message->text }} with {{ $recipient->name }}
                                 @else
-                                    {{ $this->sender($message->sender_id)->name }} {{ $message->text }} with you
+                                    {{ $this->sender($message->user_id)->name }} {{ $message->text }} with you
                                 @endif
                                 <br class="mt-1">
                                 <span class="text-gray-400 text-[10px]">
@@ -77,7 +77,7 @@ use \Carbon\Carbon;
                         @endif
                     </li>
                     @php
-                        $last_sender_id = $message->sender_id;
+                        $last_user_id = $message->user_id;
                     @endphp
                     @endforeach
                 </ul>

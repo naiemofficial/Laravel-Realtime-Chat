@@ -76,7 +76,7 @@ return [
 
         'guests' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Guest::class,
+            'model' => \App\Models\Guest::class,
         ],
     ],
 

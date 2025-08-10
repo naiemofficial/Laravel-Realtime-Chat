@@ -3,7 +3,7 @@
 namespace App\Livewire\Chat;
 
 use App\Http\Controllers\MessageController;
-use App\Http\Middleware\GuestAuth;
+use App\Http\Middleware\UserAuth;
 use Livewire\Component;
 
 class SendMessage extends Component
@@ -14,7 +14,7 @@ class SendMessage extends Component
     public function send(){
         $conversationId = $this->conversationId;
         $message = $this->message;
-        $response = app(GuestAuth::class)->handle(request(), function($request) use ($conversationId, $message){
+        $response = app(UserAuth::class)->handle(request(), function($request) use ($conversationId, $message){
             $request->merge([
                 'conversation_id'   => $conversationId,
                 'message'           => $message
@@ -26,6 +26,7 @@ class SendMessage extends Component
 
         if($response->isSuccessful()){
             $Message = $response->getData()->message;
+            $this->reset('message');
             $this->dispatch('execute-drop-message', message: $Message);
             $this->dispatch('refresh-conversations', data: ['animation' => false]);
         } else {

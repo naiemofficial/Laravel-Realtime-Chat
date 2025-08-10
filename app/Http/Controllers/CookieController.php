@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guest;
-use Illuminate\Http\Request;
 use App\Http\Requests\CookieRequest;
 use App\Models\Cookie as DBCookie;
-use Illuminate\Support\Facades\Cookie;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use function Laravel\Prompts\error;
 use function PHPUnit\Framework\isEmpty;
-use App\Http\Controllers\GuestController;
-use Illuminate\Support\Facades\Log;
 
 class CookieController extends Controller
 {

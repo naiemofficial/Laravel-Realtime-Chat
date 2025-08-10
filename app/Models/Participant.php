@@ -8,6 +8,6 @@ class Participant extends Model
 {
     protected $fillable = [
         'conversation_id',
-        'guest_id'
+        'user_id'
     ];
 }

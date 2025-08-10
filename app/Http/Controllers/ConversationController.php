@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Conversation;
-use App\Models\Guest;
 use App\Models\Message;
 use App\Models\Participant;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ConversationController extends Controller
 {
@@ -33,15 +35,20 @@ class ConversationController extends Controller
     {
         try {
             $validated = $request->validate([
-                'uid' => ['required', 'regex:/^G[0-9]+$/']
+                'uid' => ['required', 'regex:/^U[0-9]+$/', function ($attribute, $value, $fail) {
+                    $userId = (int) substr($value, 1, -3);
+                    if (!User::where('id', $userId)->exists()) {
+                        $fail('Invalid UID');
+                    }
+                }]
             ]);
 
             $uid = $request->uid;
 
 
-            // User/Guest itself
-            $CurrentGuest = Guest::current();
-            if($uid == $CurrentGuest->uid){
+            // User itself
+            $User = Auth::user();
+            if($uid == $User->uid){
                 return response()->json([
                     'warning' => 'You can\'t send messages to yourself.'
                 ], 409);
@@ -49,7 +56,7 @@ class ConversationController extends Controller
 
 
             // Recipient exists
-            $Recipient = Guest::firstWhere('uid', $uid);
+            $Recipient = User::firstWhere('uid', $uid);
             if(!$Recipient){
                 return response()->json([
                     'error' => 'Recipient could not be found.'
@@ -58,7 +65,7 @@ class ConversationController extends Controller
 
 
             // Check if conversation exists or not
-            if($Conversation = Conversation::existsWith($CurrentGuest, $Recipient)){
+            if($Conversation = Conversation::existsWith($User, $Recipient)){
                 return response()->json([
                     'info' => 'A Conversation already exists with ' . $Recipient->name . "($Recipient->uid)",
                     'conversation_id' => $Conversation->id
@@ -67,19 +74,21 @@ class ConversationController extends Controller
 
 
 
+            DB::beginTransaction();
             // Create Conversation
             $Conversation   = Conversation::create();
             $conversationId = $Conversation->id;
 
-            Participant::create(['conversation_id' => $conversationId, 'guest_id' => $CurrentGuest->id]);
-            Participant::create(['conversation_id' => $conversationId, 'guest_id' => $Recipient->id]);
+            Participant::create(['conversation_id' => $conversationId, 'user_id' => $User->id]);
+            Participant::create(['conversation_id' => $conversationId, 'user_id' => $Recipient->id]);
 
             $Message = Message::create([
                 'conversation_id'   => $conversationId,
-                'sender_id'         => $CurrentGuest->id,
+                'user_id'           => $User->id,
                 'text'              => 'started conversation',
                 'type'              => 'starter'
             ]);
+            DB::commit();
 
 
             return response()->json([

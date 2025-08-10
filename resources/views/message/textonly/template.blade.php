@@ -12,8 +12,8 @@
         x-data="{ show: false, element: $el }"
         x-init="
             setTimeout(() => show = true, 100 + {{ $delay ?? 0 }});
-            setTimeout(() => show = false, 3100 + {{ $delay ?? 0 }});
-            setTimeout(() => element.remove(), 3500 + {{ $delay ?? 0 }});
+            setTimeout(() => show = false, 333100 + {{ $delay ?? 0 }});
+            setTimeout(() => element.remove(), 333500 + {{ $delay ?? 0 }});
         "
         x-show="show"
         x-transition:enter="transition ease-out duration-300 opacity-0 transform translate-y-4"

@@ -3,10 +3,8 @@
 namespace App\Events;
 
 use App\Models\Conversation;
-use App\Models\Guest;
-use Illuminate\Broadcasting\Channel;
+use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -19,7 +17,7 @@ class MessageSent implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public Conversation $Conversation, public Guest $Sender, public string $message)
+    public function __construct(public Conversation $Conversation, public User $Sender, public string $message)
     {
         //
     }
@@ -33,7 +31,7 @@ class MessageSent implements ShouldBroadcast
     {
         $Recipient = $this->Conversation->recipient($this->Sender);
         return [
-            new PrivateChannel("App.Models.Guest.{$Recipient->id}"),
+            new PrivateChannel("App.Models.User.{$Recipient->id}"),
         ];
     }
 }

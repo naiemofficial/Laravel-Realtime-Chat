@@ -9,7 +9,7 @@
         wire:loading.attr="disabled"
         wire:target="submit"
         type="text" class="flex-1 bg-transparent text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0 py-1 text-sm disabled:text-gray-400 border-0"
-        placeholder="Enter User/Guest (U)ID"
+        placeholder="Enter User UID"
     >
     <button
         type="submit"

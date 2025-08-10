@@ -17,7 +17,7 @@ class ConversationAlert extends Component
                 'key' => 'textOnly',
                 'wrapper' => true,
                 'key-based-color' => true,
-                'class' => 'line-clamp-2 px-2 py-0.5 border-1 border-solid rounded-[20px]'
+                'class' => 'line-clamp-2 px-2 py-0.5 border border-solid rounded-[20px]'
             ]
         ]);
     }

@@ -27,8 +27,8 @@
                                 <i class="fa-duotone fa-solid fa-user"></i>
                             </span>
                         <div class="min-w-0 flex-auto">
-                            <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $conversation->recipient($currentGuest->id)->name }}</p>
-                            <p class="mt-1 truncate text-xs/5 text-gray-500">{{ $conversation->recipient($currentGuest->id)->uid }}</p>
+                            <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $conversation->recipient(auth()->user()->id)->name }}</p>
+                            <p class="mt-1 truncate text-xs/5 text-gray-500">{{ $conversation->recipient(auth()->user()->id)->uid }}</p>
                         </div>
                     </div>
 

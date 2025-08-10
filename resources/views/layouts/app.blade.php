@@ -12,6 +12,7 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" type="text/javascript"></script>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
