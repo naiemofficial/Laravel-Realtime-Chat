@@ -12,7 +12,7 @@ use Livewire\Component;
 class Messages extends Component
 {
     public $messages = [];
-    public $recipient = null;
+    public $participant = null;
     public $Conversation = null;
     public $conversationSelected = false;
     public $conversationId;
@@ -32,7 +32,7 @@ class Messages extends Component
         });
 
         if($response->isSuccessful()){
-            $this->recipient = $Conversation->recipient();
+            $this->participant = $Conversation->participant(auth()->user());
             $this->messages = $response->getData()->messages;
             $this->conversationSelected = true;
         }

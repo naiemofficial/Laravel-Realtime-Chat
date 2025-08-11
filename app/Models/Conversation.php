@@ -18,32 +18,26 @@ class Conversation extends Model
         return ($user_1_conversation_ids->contains($shared_conversation_id) ? self::find($shared_conversation_id) : null);
     }
 
-    public function recipient(User|array|int|null $user = null) : ?User {
-        if($user instanceof User){
-            $user = $user->id;
+    public function participants(User|int|null $excludeUser = null){
+        $user_id = 0;
+        if($excludeUser !== null){
+            $user_id = $excludeUser instanceof User ? $excludeUser->id : $excludeUser;
         }
-        return $this->recipients($user)->first();
+
+        $participants = $this->hasMany(Participant::class);
+        if($user_id > 0){
+            $participants = $participants->where('user_id', '!=', $user_id);
+        }
+        return $participants;
     }
 
-    public function recipients(User|array|int|null $user = null) : Collection {
-        if($user instanceof User){
-            $user = $user->id;
-        }
-        $current_user_id = $user ?? Auth::user()->id;
-        $user_ids = Participant::where('conversation_id', $this->id)->pluck('user_id');
 
-        if ($current_user_id !== null) {
-            $user_ids = $user_ids->filter(function ($id) use ($current_user_id) {
-                return is_array($current_user_id)
-                    ? !in_array($id, $current_user_id)
-                    : $id != $current_user_id;
-            });
-        }
-
-        return User::whereIn('id', $user_ids)->get();
+    public function participant(User|int|null $excludeUser = null): ?User {
+        return $this->participants($excludeUser)->with('user')->first()?->user ?? null;
     }
 
-    public function messages(){
+
+    public function messages() : Collection {
         return $this->hasMany(Message::class)->get();
     }
 }

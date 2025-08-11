@@ -6,7 +6,7 @@
     @if($conversations->count() < 1)
         <livewire:chat.conversation-not-available />
     @else
-        <ul role="list" class="divide-y divide-gray-100 space-y-1 mt-2">
+        <ul role="list" id="conversations" class="divide-y divide-gray-100 space-y-1 mt-2">
             @foreach($conversations as $index => $conversation)
                 <li
                     wire:key="{{ $conversation->id }}"
@@ -27,8 +27,8 @@
                                 <i class="fa-duotone fa-solid fa-user"></i>
                             </span>
                         <div class="min-w-0 flex-auto">
-                            <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $conversation->recipient(auth()->user()->id)->name }}</p>
-                            <p class="mt-1 truncate text-xs/5 text-gray-500">{{ $conversation->recipient(auth()->user()->id)->uid }}</p>
+                            <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $conversation->participant(auth()->user())->name }}</p>
+                            <p class="mt-1 truncate text-xs/5 text-gray-500">{{ $conversation->participant(auth()->user())->uid }}</p>
                         </div>
                     </div>
 

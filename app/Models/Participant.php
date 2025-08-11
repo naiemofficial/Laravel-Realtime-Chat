@@ -10,4 +10,9 @@ class Participant extends Model
         'conversation_id',
         'user_id'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

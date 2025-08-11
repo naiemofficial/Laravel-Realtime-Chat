@@ -20,8 +20,11 @@ use \Carbon\Carbon;
                     <i class="fa-duotone fa-solid fa-user"></i>
                 </div>
                 <div class="flex flex-col">
-                    <span class="font-semibold text-gray-800 text-sm">{{ $Conversation->recipient(auth()->user()->id)->name }}</span>
-                    <span class="text-[0.65rem] text-gray-600">{{ $Conversation->recipient(auth()->user()->id)->uid }}</span>
+                    @php
+                        $participant = $Conversation->participant(auth()->user()->id);
+                    @endphp
+                    <span class="font-semibold text-gray-800 text-sm">{{ $participant->name }}</span>
+                    <span class="text-[0.65rem] text-gray-600">{{ $participant->uid }}</span>
                 </div>
             </div>
         @endif
@@ -31,8 +34,8 @@ use \Carbon\Carbon;
         @else
             <div class="flex flex-col mt-auto overflow-y-auto overflow-x-hidden">
                 <ul
-                role="list" class="divide-y divide-gray-100 space-y-1" id="chat-box"
-                x-init="initExecuteDropMessageListener()"
+                role="list" id="chat-box" data-conversation="{{ $conversationId }}"
+                class="divide-y divide-gray-100 space-y-1"
                 >
                     @php
                         $last_user_id = 0;
@@ -44,7 +47,7 @@ use \Carbon\Carbon;
                         x-init="revealAndScroll($el, {{ 100 }})"
                         x-show="show"
                         x-transition.duration.300ms
-                        class="px-8 pt-{{($last_user_id == $message->user_id) ? '0' : '3'}} transition-[0.3s] bg-white border-none"
+                        class="px-8 pt-3 transition-[0.3s] bg-white border-none"
                         style="transition: 0.3s"
                         data-type="{{ $message->type }}"
                         @if($message->type !== 'starter')
@@ -54,7 +57,7 @@ use \Carbon\Carbon;
                         @if($message->type === 'starter')
                             <div class="text-center text-gray-500 text-xs mt-4 mb-10 w-full">
                                 @if(auth()->user()->id == $message->user_id)
-                                    You {{ $message->text }} with {{ $recipient->name }}
+                                    You {{ $message->text }} with {{ $participant->name }}
                                 @else
                                     {{ $this->sender($message->user_id)->name }} {{ $message->text }} with you
                                 @endif
@@ -95,38 +98,6 @@ use \Carbon\Carbon;
 
 
 <script>
-    function initExecuteDropMessageListener() {
-        Livewire.on('execute-drop-message', data => {
-            const message = data.message;
-            const ul = document.querySelector('#chat-box[role=list]');
-            if (!ul) return;
-
-            const last_sender = ul.querySelector('li:last-child')?.getAttribute('data-sender');
-
-            const li = document.createElement('li');
-            li.setAttribute('wire:key', message.id);
-            li.setAttribute('x-data', '{ show: false }');
-            li.setAttribute('x-init', 'revealAndScroll($el, 100)');
-            li.setAttribute('x-show', 'show');
-            li.setAttribute('x-transition.duration.300ms', '');
-            li.setAttribute('data-type', message.type);
-            li.className = `px-8 pt-${last_sender === 'self' ? '0' : '3' } transition-[0.3s] bg-white rounded-sm text-right border-none`;
-            li.setAttribute('data-sender', 'self');
-            li.style.transition = '0.3s';
-
-            li.innerHTML = `
-                <div class='block'>
-                    <div class='inline-block bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs'>
-                        <p class='text-sm leading-snug'>${message.text}</p>
-                    </div>
-                </div>
-            `;
-
-            ul.appendChild(li);
-        });
-    }
-
-
     function revealAndScroll(el, delay) {
         setTimeout(() => {
             const component = Alpine.$data(el);

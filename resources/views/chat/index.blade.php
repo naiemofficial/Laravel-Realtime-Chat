@@ -11,5 +11,7 @@
             <livewire:chat.messages />
         </div>
     </div>
+
+    <x-script />
 </x-layout>
 

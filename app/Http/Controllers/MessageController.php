@@ -38,22 +38,22 @@ class MessageController extends Controller
                 'message'           => ['required', 'string'],
             ]);
 
-            $Conversation = Conversation::find($validated['conversation_id']);
+            $Conversation   = Conversation::find($validated['conversation_id']);
             $Sender         = Auth::user();
-            $message        = $validated['message'];
+            $text           = $validated['message'];
 
 
             $Message = Message::create([
                 'conversation_id'   => $Conversation->id,
                 'user_id'           => $Sender->id,
-                'text'              => $message,
+                'text'              => $text,
                 'type'              => 'regular'
             ]);
 
 
 
             // Broadcast the message
-            broadcast(new MessageSent($Conversation, $Sender, $message));
+            broadcast(new MessageSent($Conversation, $Sender, $Message));
 
 
             return response()->json([
