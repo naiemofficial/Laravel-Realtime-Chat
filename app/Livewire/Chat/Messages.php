@@ -3,6 +3,7 @@
 namespace App\Livewire\Chat;
 
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\ParticipantController;
 use App\Http\Middleware\UserAuth;
 use App\Models\Conversation;
 use App\Models\User;
@@ -12,7 +13,7 @@ use Livewire\Component;
 class Messages extends Component
 {
     public $messages = [];
-    public $participant = null;
+    public $recipient = null;
     public $Conversation = null;
     public $conversationSelected = false;
     public $conversationId;
@@ -32,9 +33,11 @@ class Messages extends Component
         });
 
         if($response->isSuccessful()){
-            $this->participant = $Conversation->participant(auth()->user());
+            $this->recipient = $Conversation->user(auth()->user());
             $this->messages = $response->getData()->messages;
             $this->conversationSelected = true;
+            $this->dispatch('seen-conversation-incoming-message', openedConversation: $Conversation->id);
+            $this->dispatch('refresh-conversation');
         }
     }
 

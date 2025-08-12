@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class MessageController extends Controller
@@ -42,18 +43,30 @@ class MessageController extends Controller
             $Sender         = Auth::user();
             $text           = $validated['message'];
 
+            if(!$Conversation->hasUser($Sender)){
+                throw new \Exception('You do not have permission to send messages');
+            }
 
+            $SenderAsParticipant = $Conversation->participant($Sender);
+
+            DB::beginTransaction();
             $Message = Message::create([
                 'conversation_id'   => $Conversation->id,
-                'user_id'           => $Sender->id,
+                'participant_id'    => $SenderAsParticipant->id,
                 'text'              => $text,
                 'type'              => 'regular'
             ]);
 
+            $Conversation->participants()->update(['seen_conversation' => false]);
+            $Conversation->participant($Sender)?->update(['seen_conversation' => true]);
 
+            DB::commit();
 
             // Broadcast the message
             broadcast(new MessageSent($Conversation, $Sender, $Message));
+
+            $Message->participant_user_id = $Sender->id;
+
 
 
             return response()->json([

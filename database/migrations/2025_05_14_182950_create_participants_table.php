@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('participants', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Conversation::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(Conversation::class)->constrained()->cascadeOnDelete();
+            $table->boolean('seen_conversation')->default(false);
             $table->foreignIdFor(User::class)->constrained();
             $table->timestamps();
         });

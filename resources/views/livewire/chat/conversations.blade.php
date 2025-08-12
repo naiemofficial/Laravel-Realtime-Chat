@@ -22,19 +22,30 @@
                     ])
                     aria-selected="{{ $openedConversation === $conversation->id ? 'true' : 'false' }}"
                 >
-                    <div class="flex min-w-0 gap-x-4">
-                            <span class="inline-flex items-center justify-center h-[48px] w-[48px] min-w-[48px] border border-double border-gray-200 rounded-sm text-gray-300 bg-gray-100 text-xl">
-                                <i class="fa-duotone fa-solid fa-user"></i>
-                            </span>
-                        <div class="min-w-0 flex-auto">
-                            <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $conversation->participant(auth()->user())->name }}</p>
-                            <p class="mt-1 truncate text-xs/5 text-gray-500">{{ $conversation->participant(auth()->user())->uid }}</p>
-                        </div>
-                    </div>
-
-                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                        <div class="inline-flex items-center space-x-3 justify-center text-xs/5 text-gray-500">
-                            <span title="updated"><i class="fa-light fa-clock mr-1"></i> {{ $conversation->updated_at->diffForHumans() }}</span>
+                    <div class="flex min-w-0 gap-x-4 w-full">
+                        <span class="inline-flex items-center justify-center h-[48px] w-[48px] min-w-[48px] border border-double border-gray-200 rounded-sm text-gray-300 bg-gray-100 text-xl">
+                            <i class="fa-duotone fa-solid fa-user"></i>
+                        </span>
+                        @php
+                            $meAsParticipant = $conversation->participant(auth()->user());
+                            $participant = $conversation->participant(auth()->user(), exclude: true);
+                            $recipient = $participant?->user();
+                        @endphp
+                        <div class="flex flex-col w-full">
+                            <div class="min-w-0 flex flex-auto w-full flex-row gap-3 justify-between">
+                                <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $recipient->name }}</p>
+                                <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                                    <div class="inline-flex items-center space-x-3 justify-center text-xs/5 text-gray-500">
+                                        <span title="updated"><i class="fa-light fa-clock mr-1"></i> {{ $conversation->updated_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="inline-flex justify-between w-full items-center">
+                                <span class="mt-1 truncate text-xs/5 text-gray-500">{{ $recipient->uid }}</span>
+                                @if(!$meAsParticipant->seen_conversation)
+                                    <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </li>

@@ -10,12 +10,16 @@ class Message extends Model
 
     protected $fillable = [
         'conversation_id',
-        'user_id',
+        'participant_id',
         'text',
         'type'
     ];
 
     public function conversation(){
         return $this->belongsTo(Conversation::class);
+    }
+
+    public function participant(){
+        return $this->belongsTo(Participant::class);
     }
 }

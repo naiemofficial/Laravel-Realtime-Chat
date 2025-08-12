@@ -3,6 +3,10 @@
 namespace App\Livewire\Chat;
 
 use App\Helpers\Filter;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\ParticipantController;
+use App\Http\Middleware\UserAuth;
+use App\Models\Conversation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -23,6 +27,23 @@ class Conversations extends Component
         $this->openedConversation = $id;
         $this->dispatch('view-conversation', id: $id);
     }
+
+
+
+    #[On('seen-conversation-incoming-message')]
+    public function seenConversationBy(int $openedConversation): void {
+        $response = app(UserAuth::class)->handle(request(), function($request) use($openedConversation){
+            $request->merge([
+                'seen_conversation' => true
+            ]);
+
+            $ParticipantController = app(ParticipantController::class);
+            $Conversation = Conversation::find($openedConversation);
+            $Participant = $Conversation->participant(auth()->user());
+            return $ParticipantController->update($request, $Participant);
+        });
+    }
+
 
 
     #[On('refresh-conversations')]

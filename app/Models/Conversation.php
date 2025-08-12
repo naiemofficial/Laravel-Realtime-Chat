@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,26 +20,61 @@ class Conversation extends Model
         return ($user_1_conversation_ids->contains($shared_conversation_id) ? self::find($shared_conversation_id) : null);
     }
 
-    public function participants(User|int|null $excludeUser = null){
-        $user_id = 0;
-        if($excludeUser !== null){
-            $user_id = $excludeUser instanceof User ? $excludeUser->id : $excludeUser;
-        }
-
+    public function participants(Participant|int|null $Participant = null, $exclude = false) : hasMany {
         $participants = $this->hasMany(Participant::class);
-        if($user_id > 0){
-            $participants = $participants->where('user_id', '!=', $user_id);
+        if($exclude && $Participant !== null){
+            $participant_id = ($Participant instanceof Participant) ? $Participant->id : $Participant;
+            return $participants->where('id', '!=', $participant_id);
         }
         return $participants;
     }
 
 
-    public function participant(User|int|null $excludeUser = null): ?User {
-        return $this->participants($excludeUser)->with('user')->first()?->user ?? null;
+    public function participant(User|Participant|int|null $Participant = null, $exclude = false): Participant|null {
+        if($Participant instanceof User){
+            $User = $Participant;
+            return $this->participants()->where('user_id', ($exclude ? '!=' : '='), $User->id)->first();
+        }
+
+        $participant_id = ($Participant instanceof Participant) ? $Participant->id : $Participant;
+        return $this->participants()?->where('id', ($exclude ? '!=' : '='), $participant_id)->first();
     }
 
 
-    public function messages() : Collection {
-        return $this->hasMany(Message::class)->get();
+    public function hasParticipant(Participant|int|null $Participant = null): bool {
+        if ($Participant === null) {
+            return $this->participants()->exists();
+        }
+
+        $participant_id = $Participant instanceof Participant ? $Participant->id : $Participant;
+        return $this->participants()->where('id', $participant_id)->exists();
+    }
+
+    public function users(User|int|null $User = null) : hasManyThrough {
+        $users = $this->hasManyThrough(User::class, Participant::class, 'conversation_id', 'id', 'id', 'user_id');
+        if($User !== null){
+            $user_id = ($User instanceof User) ? $User->id : $User;
+            return $users->where('users.id', '!=', $user_id);
+        }
+        return $users;
+    }
+
+
+    public function user(User|int|null $User = null): User|null {
+        return $this->users($User)->first();
+    }
+
+
+    public function hasUser(User|int|null $User = null): bool {
+        if ($User === null) {
+            return $this->users()->exists();
+        }
+
+        $user_id = $User instanceof User ? $User->id : $User;
+        return $this->users()->where('user_id', $user_id)->exists();
+    }
+
+    public function messages() {
+        return $this->hasMany(Message::class);
     }
 }

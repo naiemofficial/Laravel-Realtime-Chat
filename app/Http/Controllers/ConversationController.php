@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Participant;
@@ -47,8 +48,8 @@ class ConversationController extends Controller
 
 
             // User itself
-            $User = Auth::user();
-            if($uid == $User->uid){
+            $Sender = Auth::user();
+            if($uid == $Sender->uid){
                 return response()->json([
                     'warning' => 'You can\'t send messages to yourself.'
                 ], 409);
@@ -58,14 +59,12 @@ class ConversationController extends Controller
             // Recipient exists
             $Recipient = User::firstWhere('uid', $uid);
             if(!$Recipient){
-                return response()->json([
-                    'error' => 'Recipient could not be found.'
-                ], 404);
+                throw new \Exception('Recipient could not be found');
             }
 
 
             // Check if conversation exists or not
-            if($Conversation = Conversation::existsWith($User, $Recipient)){
+            if($Conversation = Conversation::existsWith($Sender, $Recipient)){
                 return response()->json([
                     'info' => 'A Conversation already exists with ' . $Recipient->name . "($Recipient->uid)",
                     'conversation_id' => $Conversation->id
@@ -79,16 +78,23 @@ class ConversationController extends Controller
             $Conversation   = Conversation::create();
             $conversationId = $Conversation->id;
 
-            Participant::create(['conversation_id' => $conversationId, 'user_id' => $User->id]);
+            $senderAsParticipant = Participant::create(['conversation_id' => $conversationId, 'user_id' => $Sender->id]);
             Participant::create(['conversation_id' => $conversationId, 'user_id' => $Recipient->id]);
 
             $Message = Message::create([
                 'conversation_id'   => $conversationId,
-                'user_id'           => $User->id,
+                'participant_id'    => $senderAsParticipant->id,
                 'text'              => 'started conversation',
                 'type'              => 'starter'
             ]);
+
+            $Conversation->participants()->update(['seen_conversation' => false]);
+            $Conversation->participant($Sender)?->update(['seen_conversation' => true]);
+
             DB::commit();
+
+            // Broadcast the conversation and message
+            broadcast(new MessageSent($Conversation, $Sender, $Message));
 
 
             return response()->json([
@@ -108,7 +114,7 @@ class ConversationController extends Controller
      */
     public function show(Conversation $conversation)
     {
-        $messages = $conversation->messages();
+        $messages = $conversation->messages()->get();
         return response()->json([
             'messages' => $messages
         ]);

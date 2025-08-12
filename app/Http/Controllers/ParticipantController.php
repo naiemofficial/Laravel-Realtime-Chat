@@ -52,7 +52,22 @@ class ParticipantController extends Controller
      */
     public function update(Request $request, Participant $participant)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'seen_conversation' => ['boolean']
+            ]);
+
+            $participant->update($validated);
+
+            return response()->json([
+                'success' => 'Participant updated successfully!',
+                'participant_id' => $participant->id
+            ], 200);
+        } catch (\Exception $e){
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

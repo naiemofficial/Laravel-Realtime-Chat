@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Participant;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Conversation::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Participant::class)->nullable()->constrained()->nullOnDelete();
             $table->text('text');
             $table->enum('type', ['regular', 'starter', 'individual'])->default('regular');
             $table->timestamps();

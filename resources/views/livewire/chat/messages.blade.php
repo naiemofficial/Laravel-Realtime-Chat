@@ -20,11 +20,8 @@ use \Carbon\Carbon;
                     <i class="fa-duotone fa-solid fa-user"></i>
                 </div>
                 <div class="flex flex-col">
-                    @php
-                        $participant = $Conversation->participant(auth()->user()->id);
-                    @endphp
-                    <span class="font-semibold text-gray-800 text-sm">{{ $participant->name }}</span>
-                    <span class="text-[0.65rem] text-gray-600">{{ $participant->uid }}</span>
+                    <span class="font-semibold text-gray-800 text-sm">{{ $recipient->name }}</span>
+                    <span class="text-[0.65rem] text-gray-600">{{ $recipient->uid }}</span>
                 </div>
             </div>
         @endif
@@ -41,6 +38,9 @@ use \Carbon\Carbon;
                         $last_user_id = 0;
                     @endphp
                     @foreach($messages as $index => $message)
+                        @php
+                            $messageUser = $Conversation->participant($message->participant_id)->user(); // User as participant
+                        @endphp
                         <li
                         wire:key="{{ $message->id }}"
                         x-data="{ show: false }"
@@ -51,15 +51,16 @@ use \Carbon\Carbon;
                         style="transition: 0.3s"
                         data-type="{{ $message->type }}"
                         @if($message->type !== 'starter')
-                            data-sender="{{ (auth()->user()->id == $message->user_id) ? "self" : "recipient" }}"
+                            data-participant="{{ (auth()->user()->id == $messageUser->id) ? "self" : "recipient" }}"
                         @endif
                     >
                         @if($message->type === 'starter')
+
                             <div class="text-center text-gray-500 text-xs mt-4 mb-10 w-full">
-                                @if(auth()->user()->id == $message->user_id)
-                                    You {{ $message->text }} with {{ $participant->name }}
+                                @if(auth()->user()->id == $messageUser->id)
+                                    You {{ $message->text }} with {{ $recipient->name }}
                                 @else
-                                    {{ $this->sender($message->user_id)->name }} {{ $message->text }} with you
+                                    {{ $messageUser->name }} {{ $message->text }} with you
                                 @endif
                                 <br class="mt-1">
                                 <span class="text-gray-400 text-[10px]">
@@ -80,7 +81,7 @@ use \Carbon\Carbon;
                         @endif
                     </li>
                     @php
-                        $last_user_id = $message->user_id;
+                        $last_user_id = $messageUser->id;
                     @endphp
                     @endforeach
                 </ul>
@@ -95,23 +96,3 @@ use \Carbon\Carbon;
     </div>
 
 </div>
-
-
-<script>
-    function revealAndScroll(el, delay) {
-        setTimeout(() => {
-            const component = Alpine.$data(el);
-            component.show = true;
-
-            Alpine.nextTick(() => {
-                const scrollBox = el.closest('div');
-                if (scrollBox) {
-                    scrollBox.scrollTo({
-                        top: scrollBox.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        }, delay);
-    }
-</script>

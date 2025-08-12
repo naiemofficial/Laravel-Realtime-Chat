@@ -54,10 +54,14 @@ ul#chat-box[role="list"] li[data-sender="recipient"] > div,
 ul#chat-box[role="list"] li[data-sender="participant"] > div {
     text-align: left;
 }
-ul#chat-box[role="list"] li[data-sender="self"] > div {
+ul#chat-box[role="list"] li[data-sender="self"] > div,
+ul#chat-box[role="list"] li[data-participant="self"] > div ,
+ul#chat-box[role="list"] li[data-participant="self"] > div {
     text-align: right;
 }
 
+ul#chat-box[role="list"] li[data-participant="self"] + li[data-participant="self"],
+ul#chat-box[role="list"] li[data-participant="recipient"] + li[data-participant="recipient"],
 ul#chat-box[role="list"] li[data-sender="self"] + li[data-sender="self"],
 ul#chat-box[role="list"] li[data-sender="recipient"] + li[data-sender="recipient"],
 ul#chat-box[role="list"] li[data-sender="participant"] + li[data-sender="participant"] {
