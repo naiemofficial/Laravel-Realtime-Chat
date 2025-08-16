@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\MessageSent;
+use App\Events\ConversationConnection;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Participant;
@@ -94,7 +94,7 @@ class ConversationController extends Controller
             DB::commit();
 
             // Broadcast the conversation and message
-            broadcast(new MessageSent($Conversation, $Sender, $Message));
+            broadcast(new ConversationConnection($Conversation, $Sender, $Message));
 
 
             return response()->json([

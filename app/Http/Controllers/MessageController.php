@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\MessageSent;
+use App\Events\ConversationConnection;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
@@ -37,6 +37,7 @@ class MessageController extends Controller
             $validated = $request->validate([
                 'conversation_id'   => ['required', Rule::exists('conversations', 'id')],
                 'message'           => ['required', 'string'],
+                'type'              => ['nullable', 'string', 'in:regular,call'],
             ]);
 
             $Conversation   = Conversation::find($validated['conversation_id']);
@@ -54,7 +55,7 @@ class MessageController extends Controller
                 'conversation_id'   => $Conversation->id,
                 'participant_id'    => $SenderAsParticipant->id,
                 'text'              => $text,
-                'type'              => 'regular'
+                'type'              => $validated['type'] ?? 'regular'
             ]);
 
             $Conversation->participants()->update(['seen_conversation' => false]);
@@ -63,7 +64,7 @@ class MessageController extends Controller
             DB::commit();
 
             // Broadcast the message
-            broadcast(new MessageSent($Conversation, $Sender, $Message));
+            broadcast(new ConversationConnection($Conversation, $Sender, $Message));
 
             $Message->participant_user_id = $Sender->id;
 

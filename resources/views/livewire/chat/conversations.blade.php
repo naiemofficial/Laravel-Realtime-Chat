@@ -40,11 +40,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="inline-flex justify-between w-full items-center">
-                                <span class="mt-1 truncate text-xs/5 text-gray-500">{{ $recipient->uid }}</span>
+                            <div class="inline-flex justify-between w-full items-end">
+                                <span class="mt-1 leading-[1] truncate text-xs/5 text-gray-500">{{ $recipient->uid }}</span>
                                 @if(!$meAsParticipant->seen_conversation)
                                     <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
                                 @endif
+
+{{--                                <span class="inline-flex items-center h-4 px-3 text-xs bg-green-100 text-green-500 rounded-full font-medium"><span class="inline-flex items-center justify-center gap-x-1" style="zoom: 0.9"><i class="fa-solid fa-phone"></i> Audio Call</span></span>--}}
+{{--                                <span class="inline-flex items-center h-4 px-3 text-xs bg-purple-100 text-purple-500 rounded-full font-medium"><span class="inline-flex items-center justify-center gap-x-1" style="zoom: 0.9"><i class="fa-solid fa-video"></i> Video Call</span></span>--}}
                             </div>
                         </div>
                     </div>

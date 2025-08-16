@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignIdFor(Conversation::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Participant::class)->nullable()->constrained()->nullOnDelete();
             $table->text('text');
-            $table->enum('type', ['regular', 'starter', 'individual'])->default('regular');
+            $table->enum('type', ['regular', 'starter', 'individual', 'voice', 'call'])->default('regular');
             $table->timestamps();
         });
     }

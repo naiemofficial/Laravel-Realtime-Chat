@@ -6,6 +6,7 @@ use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Middleware\UserAuth;
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\User;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -17,6 +18,11 @@ class Messages extends Component
     public $Conversation = null;
     public $conversationSelected = false;
     public $conversationId;
+    public $MessageInstance;
+
+    public function mount() {
+        $this->MessageInstance = app(Message::class);
+    }
 
 
     #[On('view-conversation')]

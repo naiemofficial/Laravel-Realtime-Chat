@@ -1,6 +1,7 @@
 import './bootstrap';
-import './custom/functions.js'
-import './custom/socket-listener.js';
+import './custom/functions.js';
+import './Livewire.js';
+import './Socket.js';
 
 // import Alpine from 'alpinejs';
 //

@@ -1,22 +1,30 @@
-function revealAndScroll(el, delay) {
+function scrollMsg(el){
+    const scrollBox = el.closest('div');
+    if (scrollBox) {
+        scrollBox.scrollTo({
+            top: scrollBox.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+}
+
+function revealAndScroll(n, index, el, delay) {
     setTimeout(() => {
         const component = Alpine.$data(el);
         component.show = true;
 
         Alpine.nextTick(() => {
-            const scrollBox = el.closest('div');
-            if (scrollBox) {
-                scrollBox.scrollTo({
-                    top: scrollBox.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }
+            scrollMsg(el);
         });
+
+        if(index === n-1){
+            scrollMsg(el);
+        }
     }, delay);
 }
 window.revealAndScroll = revealAndScroll;
 
-function executeDropMessage(from, data) {
+export function executeDropMessage(from, data) {
     return new Promise((resolve) => {
         const message = data.message ?? data;
         const ul = document.querySelector('#chat-box[role=list]');
@@ -31,7 +39,7 @@ function executeDropMessage(from, data) {
         const li = document.createElement('li');
         li.setAttribute('wire:key', message.id);
         li.setAttribute('x-data', '{ show: false }');
-        li.setAttribute('x-init', 'revealAndScroll($el, 100)');
+        li.setAttribute('x-init', 'revealAndScroll(1, 0, $el, 100)');
         li.setAttribute('x-show', 'show');
         li.setAttribute('x-transition.duration.300ms', '');
         li.setAttribute('data-type', message.type);
@@ -68,11 +76,13 @@ function executeDropMessage(from, data) {
     });
 }
 
-Livewire.on('execute-drop-message', data => {
-    if(typeof executeDropMessage === 'function'){
-        executeDropMessage('livewire', data);
-    }
-});
+
+
+
+
+
+
+
 
 
 
@@ -83,8 +93,5 @@ Livewire.on('execute-drop-message', data => {
 
 // Bind with window -----------------------------------------
 Object.assign(window, {
-    revealAndScroll,
-    executeDropMessage
+    revealAndScroll
 });
-
-

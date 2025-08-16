@@ -1,4 +1,6 @@
-Echo.private(`conversation.${auth.user.id}`).listen('MessageSent', async (response) => {
+import {executeDropMessage} from "../custom/functions.js";
+
+export default async function Conversation(response){
     if(response?.Conversation && response?.Sender && response?.Message){
         Livewire.dispatch('refresh-conversations');
 
@@ -14,5 +16,4 @@ Echo.private(`conversation.${auth.user.id}`).listen('MessageSent', async (respon
             }
         }
     }
-
-});
+}

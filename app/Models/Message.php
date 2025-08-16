@@ -22,4 +22,10 @@ class Message extends Model
     public function participant(){
         return $this->belongsTo(Participant::class);
     }
+
+    public function call(int $id = 0){
+        $model = ($id > 0) ? self::find($id) : $this;
+        // $model->belongsTo(Call::class)
+        return false;
+    }
 }
