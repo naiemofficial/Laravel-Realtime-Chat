@@ -14,7 +14,7 @@ class UserAuth
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next): bool|Response
     {
         if(!Auth::check()){
             $response = ['error' => 'You are not authenticated'];

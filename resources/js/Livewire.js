@@ -5,3 +5,7 @@ Livewire.on('execute-drop-message', data => {
         executeDropMessage('livewire', data);
     }
 });
+
+window.addEventListener('log-test', () => {
+    console.log('Test');
+});

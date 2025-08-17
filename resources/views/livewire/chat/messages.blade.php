@@ -25,7 +25,7 @@ use \Carbon\Carbon;
                         <span class="text-[0.65rem] text-gray-600">{{ $recipient->uid }}</span>
                     </div>
                 </div>
-                <livewire:chat.call :conversation-id="$conversationId" :recipient-id="$recipient->id" />
+                <livewire:chat.send-call :conversation-id="$conversationId" :recipient-id="$recipient->id" />
             </div>
         @endif
 

@@ -10,7 +10,7 @@
     <x-navlinks :menus="$menus" />
 
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="py-6 flex justify-between gap-5">
+        <div class="min-h-[85px] flex justify-between gap-5 items-center">
             <h1 class="text-3xl font-bold tracking-tight text-gray-900">
                 @php
                     if (request()->segment(1) && array_key_exists(request()->segment(1), $menus)){

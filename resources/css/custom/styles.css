@@ -47,7 +47,7 @@
 
 
 /* Chat Box */
-ul#chat-box[role="list"] li[data-type="regular"]:last-child {
+ul#chat-box[role="list"] > li:last-child {
     padding-bottom: 15px;
 }
 ul#chat-box[role="list"] li[data-sender="recipient"] > div,

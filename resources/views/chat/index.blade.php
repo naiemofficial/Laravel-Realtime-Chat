@@ -1,6 +1,6 @@
 <x-layout>
     <x-slot:headerRight>
-        Filter
+        <livewire:chat.call />
     </x-slot:headerRight>
 
     <div class="h-full bg-white border border-solid rounded-md border-gray-200 mx-auto flex">
