@@ -78,12 +78,12 @@ class ConversationController extends Controller
             $Conversation   = Conversation::create();
             $conversationId = $Conversation->id;
 
-            $senderAsParticipant = Participant::create(['conversation_id' => $conversationId, 'user_id' => $Sender->id]);
+            Participant::create(['conversation_id' => $conversationId, 'user_id' => $Sender->id]);
             Participant::create(['conversation_id' => $conversationId, 'user_id' => $Recipient->id]);
 
             $Message = Message::create([
                 'conversation_id'   => $conversationId,
-                'participant_id'    => $senderAsParticipant->id,
+                'user_id'           => $Sender->id,
                 'text'              => 'started conversation',
                 'type'              => 'starter'
             ]);
@@ -114,10 +114,7 @@ class ConversationController extends Controller
      */
     public function show(Conversation $conversation)
     {
-        $messages = $conversation->messages()->get();
-        return response()->json([
-            'messages' => $messages
-        ]);
+        return $conversation->messages()->get();
     }
 
     /**

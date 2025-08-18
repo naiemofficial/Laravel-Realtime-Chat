@@ -27,8 +27,11 @@ class SendMessage extends Component
         if($response->isSuccessful()){
             $Message = $response->getData()->message;
             $this->reset('message');
-            $this->dispatch('execute-drop-message', message: $Message);
-            $this->dispatch('refresh-conversations', data: ['animation' => false]);
+
+            if($Message->type !== 'call'){
+                $this->dispatch('execute-drop-message', message: $Message);
+                $this->dispatch('refresh-conversations', data: ['animation' => false]);
+            }
         } else {
             $this->dispatch('refresh-message-alert', response: $response);
         }

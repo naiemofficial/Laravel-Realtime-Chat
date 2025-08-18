@@ -10,7 +10,7 @@ class Message extends Model
 
     protected $fillable = [
         'conversation_id',
-        'participant_id',
+        'user_id',
         'text',
         'type'
     ];
@@ -23,9 +23,11 @@ class Message extends Model
         return $this->belongsTo(Participant::class);
     }
 
-    public function call(int $id = 0){
-        $model = ($id > 0) ? self::find($id) : $this;
-        // $model->belongsTo(Call::class)
-        return false;
+    public function user(){
+        return $this->belongsTo(User::class)->first();
+    }
+
+    public function call(){
+        return $this->hasOne(Call::class)->first();
     }
 }

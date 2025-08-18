@@ -14,7 +14,10 @@ return new class extends Migration
     {
         Schema::create('calls', function (Blueprint $table) {
             $table->id();
-            $table->foreignId(Message::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Message::class)->constrained()->cascadeOnDelete();
+            $table->enum('type', ['voice', 'video'])->default('voice');
+            $table->enum('status', ['pending', 'cancelled', 'declined', 'accepted'])->default('pending');
+            $table->timestamp('received_at')->nullable();
             $table->timestamp('ended_at')->nullable();
             $table->timestamps();
         });

@@ -1,7 +1,7 @@
 <div x-data>
     @if($sendingCall || $incomingCall)
     <div
-        wire:poll.1000ms="checkCallStatus({{ $conversationId }})"
+        wire:poll.1500ms="refresh"
         x-show="$wire.sendingCall || $wire.incomingCall"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -19,7 +19,7 @@
             <div class="inline-flex flex-col gap-y-1">
                 <p class="text-xs font-semibold text-gray-800 leading-[1]">John Doe</p>
                 <p class="text-xs text-gray-500 leading-[1]" style="zoom: 0.9;">
-                    <span x-text="$wire.sendingCall ? 'Calling...' : ($wire.incomingCall ? 'Incoming Call...' : '')"></span>
+                    <span>{{ $callText }}</span>
                 </p>
             </div>
         </div>

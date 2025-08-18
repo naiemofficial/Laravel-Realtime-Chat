@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Events\ConversationConnection;
+use App\Models\Call;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use stdClass;
 
 class MessageController extends Controller
 {
@@ -48,12 +50,10 @@ class MessageController extends Controller
                 throw new \Exception('You do not have permission to send messages');
             }
 
-            $SenderAsParticipant = $Conversation->participant($Sender);
-
             DB::beginTransaction();
             $Message = Message::create([
                 'conversation_id'   => $Conversation->id,
-                'participant_id'    => $SenderAsParticipant->id,
+                'user_id'           => $Sender->id,
                 'text'              => $text,
                 'type'              => $validated['type'] ?? 'regular'
             ]);
@@ -64,22 +64,25 @@ class MessageController extends Controller
             DB::commit();
 
             // Broadcast the message
-            broadcast(new ConversationConnection($Conversation, $Sender, $Message));
-
-            $Message->participant_user_id = $Sender->id;
-
+            if($Message->type !== 'call'){
+                broadcast(new ConversationConnection($Conversation, $Sender, $Message));
+            }
 
 
             return response()->json([
                 'success' => 'Message sent successfully',
-                'message' => $Message
+                'message' => $Message,
             ], 201);
+
         } catch (\Exception $e){
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
         }
-
     }
 
     /**

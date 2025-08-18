@@ -30,10 +30,10 @@ class Conversation extends Model
     }
 
 
-    public function participant(User|Participant|int|null $Participant = null, $exclude = false): Participant|null {
-        if($Participant instanceof User){
-            $User = $Participant;
-            return $this->participants()->where('user_id', ($exclude ? '!=' : '='), $User->id)->first();
+    public function participant(User|Participant|int|null $Participant = null, $exclude = false, string $as = null): Participant|null {
+        if($Participant instanceof User || (is_int($Participant) && $as === 'user')){
+            $user_id = ($Participant instanceof User) ? $Participant->id : $Participant;
+            return $this->participants()->where('user_id', ($exclude ? '!=' : '='), $user_id)->first();
         }
 
         $participant_id = ($Participant instanceof Participant) ? $Participant->id : $Participant;
@@ -54,7 +54,7 @@ class Conversation extends Model
         $users = $this->hasManyThrough(User::class, Participant::class, 'conversation_id', 'id', 'id', 'user_id');
         if($User !== null){
             $user_id = ($User instanceof User) ? $User->id : $User;
-            return $users->where('users.id', '!=', $user_id);
+            return $users->where('users.id', '=', $user_id);
         }
         return $users;
     }

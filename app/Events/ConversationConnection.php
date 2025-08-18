@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Call;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -20,7 +21,7 @@ class ConversationConnection implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public Conversation $Conversation, public User $Sender, public Message $Message)
+    public function __construct(public Conversation $Conversation, public User $Sender, public ?Message $Message, public array $data = [])
     {
         //
     }
@@ -32,7 +33,7 @@ class ConversationConnection implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        $Recipient = $this->Conversation->participant($this->Message->participant_id, exclude: true)->user();
+        $Recipient = $this->Conversation->participant($this->Sender, exclude: true)->user();
         return [
             new PrivateChannel('conversation-connection.' . $Recipient->id)
         ];

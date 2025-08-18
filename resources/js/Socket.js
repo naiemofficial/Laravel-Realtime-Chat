@@ -1,6 +1,6 @@
-import MessageSent from "./app/Events.js";
-if(auth?.user?.id){
+import Conversation from "./app/Events.js";
+if(typeof auth !== 'undefined' && auth?.user?.id){
     Echo.private(`conversation-connection.${auth.user.id}`).listen('ConversationConnection', async (response) => {
-        MessageSent(response);
+        Conversation(response);
     });
 }

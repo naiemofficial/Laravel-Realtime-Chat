@@ -1,13 +1,19 @@
 import {executeDropMessage} from "../custom/functions.js";
 
 export default async function Conversation(response){
-    if(response?.Conversation && response?.Sender && response?.Message){
+    if(Object.keys(response?.data).length > 0){
+        const data = response?.data;
+        if(data?.to === 'CALL'){
+            Livewire.dispatch('call-post-connection', {data: data});
+        }
+    } else if(response?.Conversation && response?.Sender && response?.Message){
+
         Livewire.dispatch('refresh-conversations');
 
         const message = response.Message;
-        if(message.type !== 'starter'){
-            console.log(message);
-            if(message.type === 'regular'){
+        if(message.type === 'starter'){
+
+        } else if(message.type === 'regular'){
                 if (typeof executeDropMessage === 'function') {
                     const response = await executeDropMessage('websocket', message);
                     if(response.status){
@@ -16,14 +22,10 @@ export default async function Conversation(response){
                         Livewire.dispatch('seen-conversation-incoming-message', { openedConversation: data.openedConversation });
                     }
                 }
-            } else if(message.type === 'call'){
-                const data = {
-                    'conversation_id': message.conversation_id
-                };
-                Livewire.dispatch('incoming-call', {data: data});
-            } else if(message.type === 'RESPONSE'){
-                console.log(`${message.type} ${message.text}`);
             }
+
+        else if(message.type === 'call'){
+            Livewire.dispatch('incoming-call', {message_id: message?.id});
         }
     }
 }

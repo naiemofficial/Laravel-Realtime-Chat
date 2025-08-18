@@ -1,7 +1,7 @@
 <div class="inline-flex items-center gap-x-3">
     <!-- Audio Call Button -->
     <button type="button"
-            wire:click="audioCall"
+            wire:click="voiceCall"
             class="px-3 py-1 rounded-full bg-green-500 text-white hover:bg-green-600 active:scale-95 transition disabled:bg-gray-400">
         <i class="fa-solid fa-phone"></i>
     </button>

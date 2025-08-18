@@ -1,3 +1,6 @@
+@php
+    $auth_user = auth()->user();
+@endphp
 <div class="h-full">
     <livewire:chat.conversation-alert />
 
@@ -27,13 +30,12 @@
                             <i class="fa-duotone fa-solid fa-user"></i>
                         </span>
                         @php
-                            $meAsParticipant = $conversation->participant(auth()->user());
-                            $participant = $conversation->participant(auth()->user(), exclude: true);
-                            $recipient = $participant?->user();
+                            $me = $conversation->participant($auth_user)->user(); // Participant (me) as user
+                            $participant = $conversation->participant($auth_user, exclude: true)->user(); // Participant as User
                         @endphp
                         <div class="flex flex-col w-full">
                             <div class="min-w-0 flex flex-auto w-full flex-row gap-3 justify-between">
-                                <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $recipient->name }}</p>
+                                <p class="text-sm/6 font-semibold text-gray-900 truncate">{{ $participant->name }}</p>
                                 <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                                     <div class="inline-flex items-center space-x-3 justify-center text-xs/5 text-gray-500">
                                         <span title="updated"><i class="fa-light fa-clock mr-1"></i> {{ $conversation->updated_at->diffForHumans() }}</span>
@@ -41,8 +43,8 @@
                                 </div>
                             </div>
                             <div class="inline-flex justify-between w-full items-end">
-                                <span class="mt-1 leading-[1] truncate text-xs/5 text-gray-500">{{ $recipient->uid }}</span>
-                                @if(!$meAsParticipant->seen_conversation)
+                                <span class="mt-1 leading-[1] truncate text-xs/5 text-gray-500">{{ $participant->uid }}</span>
+                                @if(!$me->seen_conversation)
                                     <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
                                 @endif
 

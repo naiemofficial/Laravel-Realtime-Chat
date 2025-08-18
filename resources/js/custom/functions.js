@@ -33,7 +33,7 @@ export function executeDropMessage(from, data) {
         const last_sender_element   = ul.querySelector('li:last-child');
         const last_sender   = last_sender_element?.getAttribute('data-sender');
         const auth_user_id          = Number(auth.user.id);
-        const messsage_sender_id    = Number(message.participant_user_id);
+        const message_user_id       = Number(message.user_id);
 
 
         const li = document.createElement('li');
@@ -44,7 +44,7 @@ export function executeDropMessage(from, data) {
         li.setAttribute('x-transition.duration.300ms', '');
         li.setAttribute('data-type', message.type);
         li.className = `px-8 pt-3 transition-[0.3s] bg-white rounded-sm border-none`;
-        li.setAttribute('data-participant', ((messsage_sender_id === auth_user_id) ? 'self' : 'recipient'));
+        li.setAttribute('data-participant', ((message_user_id === auth_user_id) ? 'self' : 'recipient'));
         li.style.transition = '0.3s';
 
         li.innerHTML = `

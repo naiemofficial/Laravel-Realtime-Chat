@@ -14,7 +14,7 @@ use Livewire\Component;
 class Messages extends Component
 {
     public $messages = [];
-    public $recipient = null;
+    public $participant = null;
     public $Conversation = null;
     public $conversationSelected = false;
     public $conversationId;
@@ -31,20 +31,14 @@ class Messages extends Component
         $Conversation  = $this->Conversation;
         $this->conversationId = $id;
 
+        $ConversationController = app(ConversationController::class);
+        $this->messages = $ConversationController->show($Conversation);
 
-        request()->attributes->set('suggestion', true);
-        $response = app(UserAuth::class)->handle(request(), function($request) use($Conversation){
-            $ConversationController = app(ConversationController::class);
-            return $ConversationController->show($Conversation);
-        });
+        $this->participant = $Conversation->participant(auth()->user(), exclude: true)->user();
+        $this->conversationSelected = true;
+        $this->dispatch('seen-conversation-incoming-message', openedConversation: $Conversation->id);
+        $this->dispatch('refresh-conversation');
 
-        if($response->isSuccessful()){
-            $this->recipient = $Conversation->user(auth()->user());
-            $this->messages = $response->getData()->messages;
-            $this->conversationSelected = true;
-            $this->dispatch('seen-conversation-incoming-message', openedConversation: $Conversation->id);
-            $this->dispatch('refresh-conversation');
-        }
     }
 
 
@@ -52,8 +46,7 @@ class Messages extends Component
     public function refreshMessages($conversationId){
         $ConversationController = app(ConversationController::class);
         $Conversation = Conversation::find($conversationId);
-        $response = $ConversationController->show($Conversation);
-        $this->messages = $response->getData()->messages;
+        $this->messages = $ConversationController->show($Conversation);
     }
 
 

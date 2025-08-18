@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Conversation::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Participant::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
             $table->text('text');
             $table->enum('type', ['regular', 'starter', 'individual', 'voice', 'call'])->default('regular');
             $table->timestamps();

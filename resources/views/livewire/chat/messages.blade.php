@@ -21,11 +21,11 @@ use \Carbon\Carbon;
                         <i class="fa-duotone fa-solid fa-user"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-semibold text-gray-800 text-sm">{{ $recipient->name }}</span>
-                        <span class="text-[0.65rem] text-gray-600">{{ $recipient->uid }}</span>
+                        <span class="font-semibold text-gray-800 text-sm">{{ $participant->name }}</span>
+                        <span class="text-[0.65rem] text-gray-600">{{ $participant->uid }}</span>
                     </div>
                 </div>
-                <livewire:chat.send-call :conversation-id="$conversationId" :recipient-id="$recipient->id" />
+                <livewire:chat.send-call :conversation-id="$conversationId" :participant-id="$participant->id" />
             </div>
         @endif
 
@@ -42,7 +42,7 @@ use \Carbon\Carbon;
                     @endphp
                     @foreach($messages as $index => $message)
                         @php
-                            $messageUser = $Conversation->participant($message->participant_id)->user(); // User as participant
+                            $messageUser = $Conversation->participant($message->user_id, as: 'user')->user(); // Participant as user
                         @endphp
                         <li
                         wire:key="{{ $message->id }}"
@@ -58,10 +58,9 @@ use \Carbon\Carbon;
                         @endif
                     >
                         @if($message->type === 'starter')
-
                             <div class="text-center text-gray-500 text-xs mt-4 mb-10 w-full">
                                 @if(auth()->user()->id == $messageUser->id)
-                                    You {{ $message->text }} with {{ $recipient->name }}
+                                    You {{ $message->text }} with {{ $participant->name }}
                                 @else
                                     {{ $messageUser->name }} {{ $message->text }} with you
                                 @endif
@@ -79,17 +78,32 @@ use \Carbon\Carbon;
                                                 {{ $message->text }}
                                             </p>
                                         </div>
-                                    @elseif($message->type === 'call')
+                                    @elseif($message->type === 'call' && $message->call()?->exists())
+                                        @php
+                                            $Call = $message->call();
+                                        @endphp
                                         <div class="inline-block bg-gray-100 border border-gray-200 text-gray-700 rounded-lg px-4 py-3 max-w-xs">
-                                            <p class="text-xs leading-snug font-medium capitalize">
-                                                @if($MessageInstance->call($message->id)))
-                                                    <i class="fa-solid fa-{{ $message->text ? 'phone' : 'video' }}-arrow-{{(auth()->user()->id == $messageUser->id) ? 'up-right' : 'down-left'}} pr-1.5"></i>
+                                            <div class="text-xs leading-snug capitalize">
+                                                @if($message->user_id === auth()->user()->id)
+                                                    <i class="fa-solid fa-phone-arrow-up-right"></i>
                                                 @else
-                                                    <i class="fa-solid fa-phone-missed text-red-500"></i> Missed
+                                                    <i class="fa-solid fa-phone-missed text-red-500"></i>
                                                 @endif
 
-                                                {{ $message->text }} {{ $message->type }}
-                                            </p>
+                                                <div class="inline-flex flex-col gap-1">
+                                                    @if($Call->status === 'cancelled' || $Call->status === 'declined')
+                                                        <span class="font-medium">Missed {{ $Call->type }} {{ $message->type }}</span>
+                                                        <span>{{ $Call->status }}</span>
+                                                    @elseif($Call->status === 'pending')
+                                                        <span class="font-medium">Missed {{ $Call->type }} {{ $message->type }}</span>
+                                                        <span>{{ $Call->status }}</span>
+                                                    @endif
+                                                </div>
+
+
+
+
+                                            </div>
                                         </div>
                                     @else
                                         <div class="inline-block border border-gray-100 rounded-full">
