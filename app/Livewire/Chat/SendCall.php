@@ -18,7 +18,7 @@ class SendCall extends Component
     }
 
     public function videoCall(){
-
+        $this->dispatch('start-video-call', conversation_id: $this->conversationId);
     }
 
 

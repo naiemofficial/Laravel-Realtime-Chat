@@ -80,29 +80,22 @@ use \Carbon\Carbon;
                                         </div>
                                     @elseif($message->type === 'call' && $message->call()?->exists())
                                         @php
-                                            $Call = $message->call();
+                                            $Call       = $message->call();
+                                            $voice_icon = ($message->user_id === auth()->user()->id) ? 'fa-solid fa-phone-arrow-up-right' : 'fa-solid fa-phone-arrow-down-left';
+                                            $video_icon = ($message->user_id === auth()->user()->id) ? 'fa-solid fa-video-arrow-up-right' : 'fa-solid fa-video-arrow-down-left';
+                                            $icon       = ($Call->type === 'voice') ? $voice_icon : $video_icon;
+                                            $icon_color = ($Call->status === 'cancelled') ? 'text-red-500' : '';
+                                            $pre_text   = ($Call->status === 'cancelled') ? 'Missed' : '';
+                                            $text       = $pre_text . ' ' . $Call->type . ' ' . $message->type;
+                                            $status     = ($Call->status === 'declined') ? $Call->status : '';
                                         @endphp
                                         <div class="inline-block bg-gray-100 border border-gray-200 text-gray-700 rounded-lg px-4 py-3 max-w-xs">
-                                            <div class="text-xs leading-snug capitalize">
-                                                @if($message->user_id === auth()->user()->id)
-                                                    <i class="fa-solid fa-phone-arrow-up-right"></i>
-                                                @else
-                                                    <i class="fa-solid fa-phone-missed text-red-500"></i>
-                                                @endif
-
-                                                <div class="inline-flex flex-col gap-1">
-                                                    @if($Call->status === 'cancelled' || $Call->status === 'declined')
-                                                        <span class="font-medium">Missed {{ $Call->type }} {{ $message->type }}</span>
-                                                        <span>{{ $Call->status }}</span>
-                                                    @elseif($Call->status === 'pending')
-                                                        <span class="font-medium">Missed {{ $Call->type }} {{ $message->type }}</span>
-                                                        <span>{{ $Call->status }}</span>
-                                                    @endif
+                                            <div class="inline-flex flex-row items-center text-xs leading-snug capitalize gap-2">
+                                                <i class="{{ $icon }} {{ $icon_color }}"></i>
+                                                <div class="inline-flex flex-col gap-0 leading-snug text-left">
+                                                    <span class="font-medium">{{ $text }}</span>
+                                                    @if(strlen($status))<span style="zoom: 0.9">{{ $status }}</span>@endif
                                                 </div>
-
-
-
-
                                             </div>
                                         </div>
                                     @else

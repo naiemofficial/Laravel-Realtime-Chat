@@ -8,9 +8,11 @@ use App\Http\Middleware\UserAuth;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Call as CallModel;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use ReflectionMethod;
 
 class Call extends Component
 {
@@ -18,6 +20,7 @@ class Call extends Component
     public ?Message $Message = null;
     public ?CallModel $Call = null;
     public array $call = [];
+    public array $fromCall = [];
     public $Participant;
 
     public ?int $recipientId = null;
@@ -26,6 +29,7 @@ class Call extends Component
     public ?string $callText = null;
     public $calling = false;
     public ?string $callStatus = null;
+    public bool $isMuted = false;
 
     private function callInProgress() : void {
         $this->dispatch('refresh-message-alert', response: ['error' => 'A call is already in progress.']);
@@ -124,69 +128,98 @@ class Call extends Component
 
         if ($this->Call instanceof CallModel && $this->Call?->exists()) {
             $this->incomingCall = true;
-            $this->responseRinging();
+
+            // Send a response to caller that call is ringing
+            $this->WS_send([ 'type' => 'RESPONSE', 'response'  => 'ringing', 'text' => 'Ringing...' ]);
         }
     }
+
+
 
     public function cancelDeclineCall(bool $by_self = true): void {
         if($this->Call instanceof CallModel && $this->Call->exists()){
             if ($this->sendingCall) {
                 if($by_self){
                     $this->Call->update(['status' => 'cancelled']);
-                    $this->WS_send([
-                        'to' => 'CALL', 'type' => 'ACTION', 'action' => 'cancelled', 'call' => $this->Call
-                    ]);
+                    $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineCall', 'args' => ['by_self' => !$by_self] ]);
                 }
                 $this->sendingCall = false;
             } elseif ($this->incomingCall) {
                 if($by_self) {
                     $this->Call->update(['status' => 'declined']);
-                    $this->WS_send([
-                        'to' => 'CALL', 'type' => 'ACTION', 'action' => 'declined', 'call' => $this->Call
-                    ]);
+                    $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineCall', 'args' => ['by_self' => !$by_self] ]);
                 }
                 $this->incomingCall = false;
             }
 
-            $this->Message->Call = $this->call;
+            $this->Message->call = $this->Call?->refresh()->toArray();
             $this->dispatch('execute-drop-message', message: $this->Message);
             $this->reset();
         }
     }
+
+    public function receiveCall(){
+        $this->Call->update(['status' => 'received']);
+        // $this->WS_send([
+        //     'to' => 'CALL', 'type' => 'ACTION', 'action' => 'declined', 'call' => $this->Call
+        // ]);
+    }
+
+
+
+
+
+
+
 
 
 
 
 
     private function WS_send($data){
+        $custom_header = ['to' => 'CALL', 'call' => $this->Call];
+        $data = array_merge($data, $custom_header);
         broadcast(new ConversationConnection($this->Conversation, Auth::user(), NULL, $data));
     }
 
 
-    #[On('call-post-connection')]
-    public function call_post_connection($data){
-        $call = $data['call'];
-        if($call['id'] === $this->Call->id){
 
-            if($data['type'] === 'RESPONSE'){
-                $this->WS_Response($data);
+
+
+
+
+    #[On('WS_Receive')]
+    public function WS_Receive($response){
+        $this->fromCall = $response['call'] ?? [];
+
+        if(isset($this->fromCall['id']) && $this->fromCall['id'] === $this->Call->id){
+            if($response['type'] === 'RESPONSE'){
+                $this->WS_Response($response);
             }
 
 
-            else if($data['type'] === 'ACTION'){
-                if($data['action'] === 'cancelled' || $data['action'] === 'declined'){
+            else if($response['type'] === 'ACTION'){
+                $action = $response['action'];
+                if($action === 'cancelled' || $action === 'declined'){
                     $this->cancelDeclineCall(by_self: false); // The action done by opponent
                 }
             }
 
+
+            else if ($response['type'] === 'FUNCTION') {
+                $this->call_function($response);
+            }
+
+
         }
     }
 
 
 
-    private function WS_Response($data): void {
-        if($data['response'] === 'ringing'){
-            $this->callText = !empty($data['text']) ? $data['text']: $this->callText;
+    private function WS_Response($_response): void {
+        $response = $_response['response'];
+        if($response === 'ringing'){
+            $this->callText = !empty($_response['text']) ? $_response['text']: $this->callText;
         }
     }
 
@@ -198,15 +231,34 @@ class Call extends Component
 
 
 
-    private function responseRinging(){
-        $data = [
-            'to'        => 'CALL',
-            'type'      => 'RESPONSE',
-            'response'  => 'ringing',
-            'text'      => 'Ringing...',
-            'call'      => $this->call
-        ];
-        $this->WS_send($data);
+
+
+
+
+    /**
+     * @throws \Exception
+     */
+    private function call_function($response){
+        $function = $response['function'];
+        if (method_exists($this, $function)) {
+            $method = new ReflectionMethod($this, $function);
+            $input_args = $response['args'] ?? [];
+            $ordered_args = [];
+
+            foreach ($method->getParameters() as $param) {
+                $name = $param->getName();
+                if (array_key_exists($name, $input_args)) {
+                    $ordered_args[] = $input_args[$name];
+                } elseif ($param->isDefaultValueAvailable()) {
+                    $ordered_args[] = $param->getDefaultValue();
+                } else {
+                    throw new Exception("Missing required argument '{$name}' for function '{$function}'");
+                }
+            }
+            $method->invokeArgs($this, $ordered_args);
+        } else {
+            throw new Exception("Method '{$function}' does not exist in class " . __CLASS__);
+        }
     }
 
 

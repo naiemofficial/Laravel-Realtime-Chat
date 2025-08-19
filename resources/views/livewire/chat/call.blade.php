@@ -26,11 +26,23 @@
 
         <!-- Call Actions -->
         <div class="flex items-center gap-x-3">
+            @if($Call?->status === 'received')
+                <button
+                    class="px-3 py-1.5 text-sm rounded-full active:scale-95 transition flex items-center gap-1"
+                    :class="$wire.isMuted ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-200 hover:bg-gray-300'"
+                >
+                    <i class="fa-solid"
+                       :class="$wire.isMuted ? 'fa-microphone-slash text-red-500' : 'fa-microphone text-gray-700'"></i>
+                </button>
+            @endif
             <template x-if="$wire.incomingCall">
                 <div class="relative flex items-center justify-center">
                     <span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
-                    <button class="relative px-2.5 py-1 text-sm rounded-full bg-green-500 text-white hover:bg-green-600 active:scale-95 transition">
-                        <i class="fa-solid fa-phone"></i>
+                    <button
+                        class="relative px-2.5 py-1 text-sm rounded-full bg-green-500 text-white hover:bg-green-600 active:scale-95 transition"
+                        wire:click=""
+                    >
+                        <i class="fa-solid {{ $Call?->type === 'video' ? 'fa-video' : 'fa-phone' }}"></i>
                     </button>
                 </div>
             </template>

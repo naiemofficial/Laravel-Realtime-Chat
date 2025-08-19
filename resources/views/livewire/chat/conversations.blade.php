@@ -30,7 +30,8 @@
                             <i class="fa-duotone fa-solid fa-user"></i>
                         </span>
                         @php
-                            $me = $conversation->participant($auth_user)->user(); // Participant (me) as user
+                            $me_Participant = $conversation->participant($auth_user);
+                            $me = $me_Participant->user(); // Participant (me) as user
                             $participant = $conversation->participant($auth_user, exclude: true)->user(); // Participant as User
                         @endphp
                         <div class="flex flex-col w-full">
@@ -44,7 +45,7 @@
                             </div>
                             <div class="inline-flex justify-between w-full items-end">
                                 <span class="mt-1 leading-[1] truncate text-xs/5 text-gray-500">{{ $participant->uid }}</span>
-                                @if(!$me->seen_conversation)
+                                @if(!$me_Participant->seen_conversation)
                                     <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
                                 @endif
 

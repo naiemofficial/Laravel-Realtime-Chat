@@ -27,6 +27,8 @@ window.revealAndScroll = revealAndScroll;
 export function executeDropMessage(from, data) {
     return new Promise((resolve) => {
         const message = data.message ?? data;
+        const call = message?.call ?? null;
+
         const ul = document.querySelector('#chat-box[role=list]');
         if (!ul) return;
 
@@ -47,13 +49,63 @@ export function executeDropMessage(from, data) {
         li.setAttribute('data-participant', ((message_user_id === auth_user_id) ? 'self' : 'recipient'));
         li.style.transition = '0.3s';
 
-        li.innerHTML = `
-            <div class='block'>
-                <div class='inline-block bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs'>
-                    <p class='text-sm leading-snug'>${message.text}</p>
+        // ----------------------------------------------------------
+        if (message.type === "regular") {
+            // regular text message
+            li.innerHTML = `
+                <div class='block'>
+                    <div class='inline-block bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs'>
+                        <p class='text-sm leading-snug'>${message.text}</p>
+                    </div>
                 </div>
+            `;
+        }
+        else if (message.type === "call" && call) {
+            const voice_icon    = (message.user_id === auth?.user?.id) ? "fa-solid fa-phone-arrow-up-right" : "fa-solid fa-phone-arrow-down-left";
+            const video_con     = (message.user_id === auth?.user?.id) ? "fa-solid fa-video-arrow-up-right" : "fa-solid fa-video-arrow-down-left";
+            const icon          = (call.type === "voice") ? voice_icon : video_con;
+            const icon_color    = (call.status === "cancelled") ? "text-red-500" : "";
+            const pre_ext       = (call.status === "cancelled") ? "Missed" : "";
+            const text          = `${pre_ext} ${call.type} ${message.type}`;
+            const status    = (call.status === "declined") ? call.status : "";
+
+            li.innerHTML = `
+                <div class='block'>
+                    <div class='inline-block bg-gray-100 border border-gray-200 text-gray-700 rounded-lg px-4 py-3 max-w-xs'>
+                        <div class='inline-flex flex-row items-center text-xs leading-snug capitalize gap-2'>
+                            <i class='${icon} ${icon_color}'></i>
+                            <div class='inline-flex flex-col gap-0 leading-snug text-left'>
+                                <span class='font-medium'>${text}</span>
+                                ${status.length > 0 ? `<span style='zoom:0.9'>${status}</span>` : ""}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        else {
+            // fallback bubble
+            li.innerHTML = `
+                <div class='block'>
+                    <div class='inline-block border border-gray-100 rounded-full'>
+                        <p class='text-sm leading-snug'>${message.text}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // tooltip (timestamp)
+        const tooltip = `
+            <div class='msg-tooltip absolute bottom-full left-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap'
+                 style='transform: translateX(-50%)'>
+                ${new Date(message.created_at).toLocaleString("en-US", {
+                    month: "short", day: "numeric", year: "numeric",
+                    hour: "numeric", minute: "2-digit", hour12: true
+                })}
             </div>
         `;
+        // ----------------------------------------------------------
 
         const selectedConversationElement = document.querySelector('#conversations[role="list"] li[aria-selected="true"]');
         const selectedConversation =  Number(selectedConversationElement?.getAttribute('wire:key'));

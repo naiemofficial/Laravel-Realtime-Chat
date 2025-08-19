@@ -2,9 +2,9 @@ import {executeDropMessage} from "../custom/functions.js";
 
 export default async function Conversation(response){
     if(Object.keys(response?.data).length > 0){
-        const data = response?.data;
-        if(data?.to === 'CALL'){
-            Livewire.dispatch('call-post-connection', {data: data});
+        const _response = response?.data;
+        if(_response?.to === 'CALL'){
+            Livewire.dispatch('WS_Receive', {response: _response});
         }
     } else if(response?.Conversation && response?.Sender && response?.Message){
 
