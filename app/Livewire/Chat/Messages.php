@@ -34,7 +34,7 @@ class Messages extends Component
         $ConversationController = app(ConversationController::class);
         $this->messages = $ConversationController->show($Conversation);
 
-        $this->participant = $Conversation->participant(auth()->user(), exclude: true)->user();
+        $this->participant = $Conversation->participant(auth()->user(), exclude: true)->user;
         $this->conversationSelected = true;
         $this->dispatch('seen-conversation-incoming-message', openedConversation: $Conversation->id);
         $this->dispatch('refresh-conversation');

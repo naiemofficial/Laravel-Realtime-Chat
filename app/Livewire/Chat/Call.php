@@ -8,20 +8,25 @@ use App\Http\Middleware\UserAuth;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Call as CallModel;
+use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use ReflectionMethod;
+use stdClass;
+
 
 class Call extends Component
 {
+    private array $temp = [];
+
     public ?Conversation $Conversation = null;
     public ?Message $Message = null;
     public ?CallModel $Call = null;
     public array $call = [];
     public array $fromCall = [];
-    public $Participant;
+    public ?User $peerUser = null;
 
     public ?int $recipientId = null;
     public bool $sendingCall = false;
@@ -30,6 +35,12 @@ class Call extends Component
     public $calling = false;
     public ?string $callStatus = null;
     public bool $isMuted = false;
+
+    public $max_call_pickup_time = 600; // seconds
+    public $elapsed_pickup_time = 0;
+    public $elapsed_call_time = 0;
+    private bool $stop_refresh = false;
+    private $last_status;
 
     private function callInProgress() : void {
         $this->dispatch('refresh-message-alert', response: ['error' => 'A call is already in progress.']);
@@ -57,9 +68,14 @@ class Call extends Component
             }
             $this->call = $this->Call->toArray() ?? [];
         }
+    }
+    private function init_temp(int $message_id): object {
+        $temp = new \stdClass();
+        $temp->Message = Message::find($message_id);
 
-
-        $this->Participant = $this->Conversation?->participant(Auth::user(), exclude: true)?->user();
+        $temp->Call = $temp->Message?->call();
+        if (!$temp->Call) $this->incomingCallID();
+        return $temp;
     }
 
 
@@ -75,6 +91,11 @@ class Call extends Component
     }
 
     private function startCall(int $conversation_id, string $call): void {
+        if($this->sendingCall){
+            $this->callInProgress();
+            return;
+        }
+
         $response = app(UserAuth::class)->handle(request(), function($request) use ($conversation_id, $call){
             $request->merge([
                 'conversation_id'   => $conversation_id,
@@ -102,11 +123,7 @@ class Call extends Component
 
 
     private function sendingCall(): void {
-        if($this->sendingCall){
-            $this->callInProgress();
-            return;
-        }
-
+        $this->peerUser = $this->Call?->receiver();
         $this->callText = 'Calling...';
         $this->sendingCall = true;
 
@@ -117,13 +134,14 @@ class Call extends Component
 
     #[On('incoming-call')]
     public function incomingCall(int $message_id): void {
-        if($this->incomingCall){
-            $this->callInProgress();
+        if($this->Call?->exists()){
+            $this->callBusy($message_id);
             return;
         }
 
-        $this->init($message_id);
 
+        $this->init($message_id);
+        $this->peerUser = $this->Call?->caller();
         $this->callText = 'Incoming call...';
 
         if ($this->Call instanceof CallModel && $this->Call?->exists()) {
@@ -134,35 +152,59 @@ class Call extends Component
         }
     }
 
+    private function callBusy($message_id){
+        $this->temp[$message_id] = $this->init_temp($message_id);
+
+        $this->temp[$message_id]?->Call?->update([ 'status' => 'busy' ]);
+        $this->WS_send([ 'call' => $this->temp[$message_id]?->Call, 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => false]]);
+        $this->temp[$message_id] = null;
+    }
 
 
-    public function cancelDeclineCall(bool $by_self = true): void {
-        if($this->Call instanceof CallModel && $this->Call->exists()){
-            if ($this->sendingCall) {
-                if($by_self){
-                    $this->Call->update(['status' => 'cancelled']);
-                    $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineCall', 'args' => ['by_self' => !$by_self] ]);
+
+    public function cancelDeclineEndCall(bool $by_self = true): void {
+        if($this->Call instanceof CallModel && $this->Call?->exists()){
+            $already_ended = in_array($this->Call->status, ['cancelled', 'declined', 'ended']);
+
+
+            if($this->sendingCall){
+                if($by_self && !$already_ended ){
+                    $this->Call->update(['status' => (($this->Call->status === 'accepted') ? 'ended' : 'cancelled')]);
                 }
                 $this->sendingCall = false;
-            } elseif ($this->incomingCall) {
-                if($by_self) {
-                    $this->Call->update(['status' => 'declined']);
-                    $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineCall', 'args' => ['by_self' => !$by_self] ]);
+            } elseif($this->incomingCall){
+                if($by_self && !$already_ended){
+                    $this->Call?->update(['status' => (($this->Call->status === 'accepted') ? 'ended' : 'declined')]);
                 }
                 $this->incomingCall = false;
             }
 
-            $this->Message->call = $this->Call?->refresh()->toArray();
+            // $this->Call->refresh();
+            $this->Message->call = $this->Call->toArray();
+
+            if($by_self){
+                $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => !$by_self] ]);
+            }
+
             $this->dispatch('execute-drop-message', message: $this->Message);
             $this->reset();
         }
     }
 
+
+
+
     public function receiveCall(){
-        $this->Call->update(['status' => 'received']);
-        // $this->WS_send([
-        //     'to' => 'CALL', 'type' => 'ACTION', 'action' => 'declined', 'call' => $this->Call
-        // ]);
+        $this->Call?->update(['status' => 'accepted', 'accepted_at' => now()]);
+        $this->WS_send([ 'type' => 'FUNCTION', 'functions' => ['refreshCall', 'resetTimer'] ]);
+    }
+
+    private function refreshCall(): void {
+        $this->Call?->refresh();
+    }
+
+    private function resetTimer(): void {
+        $this->elapsed_call_time = 0;
     }
 
 
@@ -177,8 +219,8 @@ class Call extends Component
 
 
     private function WS_send($data){
-        $custom_header = ['to' => 'CALL', 'call' => $this->Call];
-        $data = array_merge($data, $custom_header);
+        $custom_header = ['to' => 'CALL', 'call' => $this->call];
+        $data = array_merge($custom_header, $data);
         broadcast(new ConversationConnection($this->Conversation, Auth::user(), NULL, $data));
     }
 
@@ -192,7 +234,7 @@ class Call extends Component
     public function WS_Receive($response){
         $this->fromCall = $response['call'] ?? [];
 
-        if(isset($this->fromCall['id']) && $this->fromCall['id'] === $this->Call->id){
+        if((isset($this->fromCall['id']) && $this->fromCall['id'] === $this->Call?->id) || (isset($response['MANDATE']) && $response['MANDATE'] === true)){
             if($response['type'] === 'RESPONSE'){
                 $this->WS_Response($response);
             }
@@ -200,9 +242,7 @@ class Call extends Component
 
             else if($response['type'] === 'ACTION'){
                 $action = $response['action'];
-                if($action === 'cancelled' || $action === 'declined'){
-                    $this->cancelDeclineCall(by_self: false); // The action done by opponent
-                }
+
             }
 
 
@@ -235,41 +275,77 @@ class Call extends Component
 
 
 
+
+
+
+
     /**
      * @throws \Exception
      */
     private function call_function($response){
-        $function = $response['function'];
-        if (method_exists($this, $function)) {
-            $method = new ReflectionMethod($this, $function);
-            $input_args = $response['args'] ?? [];
-            $ordered_args = [];
+        $functions = [];
 
-            foreach ($method->getParameters() as $param) {
-                $name = $param->getName();
-                if (array_key_exists($name, $input_args)) {
-                    $ordered_args[] = $input_args[$name];
-                } elseif ($param->isDefaultValueAvailable()) {
-                    $ordered_args[] = $param->getDefaultValue();
-                } else {
-                    throw new Exception("Missing required argument '{$name}' for function '{$function}'");
-                }
+        // Function
+        if(!empty($response['function'])){
+            $functions[] = [ 'name' => $response['function'], 'args' => $response['args'] ?? [] ];
+        }
+
+        // Functions
+        if (!empty($response['functions'])) {
+            foreach ($response['functions'] as $index => $function) {
+                $fn_name = is_array($function) ? $index : $function;
+                $fn_args = is_array($function) ? $function : [];
+
+                $functions[] = [ 'name' => $fn_name, 'args' => $fn_args ];
             }
-            $method->invokeArgs($this, $ordered_args);
-        } else {
-            throw new Exception("Method '{$function}' does not exist in class " . __CLASS__);
+        }
+
+        foreach($functions as $function){
+            $function_name = $function['name'];
+            if(method_exists($this, $function_name)){
+                $function_args = $function['args'] ?? [];
+
+                $method = new ReflectionMethod($this, $function_name);
+                $ordered_args = [];
+
+                foreach($method->getParameters() as $param){
+                    $param_name = $param->getName();
+                    if(array_key_exists($param_name, $function_args)){
+                        $ordered_args[] = $function_args[$param_name];
+                    } elseif($param->isDefaultValueAvailable()){
+                        $ordered_args[] = $param->getDefaultValue();
+                    } else {
+                        throw new Exception("Missing required argument '{$param_name}' for function '{$function_name}'");
+                    }
+                }
+                $method->invokeArgs($this, $ordered_args);
+            } else {
+                throw new Exception("Method '{$function_name}' does not exist in class " . __CLASS__);
+            }
         }
     }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
     public function refresh(): void {
-        if($this->Call instanceof CallModel){
-
-            if($this->incomingCall){
-
+        if(!$this->stop_refresh){
+            if($this->Call instanceof CallModel && $this->Call?->exists()){
+                $this->elapsed_call_time++;
+                if($this->elapsed_call_time > $this->max_call_pickup_time){
+                    $this->cancelDeclineEndCall();
+                }
             }
-
         }
     }
 

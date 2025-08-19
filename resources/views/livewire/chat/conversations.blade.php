@@ -32,7 +32,7 @@
                         @php
                             $me_Participant = $conversation->participant($auth_user);
                             $me = $me_Participant->user(); // Participant (me) as user
-                            $participant = $conversation->participant($auth_user, exclude: true)->user(); // Participant as User
+                            $participant = $conversation->participant($auth_user, exclude: true)->user; // Participant as User
                         @endphp
                         <div class="flex flex-col w-full">
                             <div class="min-w-0 flex flex-auto w-full flex-row gap-3 justify-between">

@@ -42,7 +42,7 @@ use \Carbon\Carbon;
                     @endphp
                     @foreach($messages as $index => $message)
                         @php
-                            $messageUser = $Conversation->participant($message->user_id, as: 'user')->user(); // Participant as user
+                            $messageUser = $Conversation->participant($message->user_id, as: 'user')->user; // Participant as user
                         @endphp
                         <li
                         wire:key="{{ $message->id }}"
@@ -87,7 +87,7 @@ use \Carbon\Carbon;
                                             $icon_color = ($Call->status === 'cancelled') ? 'text-red-500' : '';
                                             $pre_text   = ($Call->status === 'cancelled') ? 'Missed' : '';
                                             $text       = $pre_text . ' ' . $Call->type . ' ' . $message->type;
-                                            $status     = ($Call->status === 'declined') ? $Call->status : '';
+                                            $status     = in_array($Call?->status, ['busy', 'declined', 'accepted', 'ended']) ? $Call->status : '';
                                         @endphp
                                         <div class="inline-block bg-gray-100 border border-gray-200 text-gray-700 rounded-lg px-4 py-3 max-w-xs">
                                             <div class="inline-flex flex-row items-center text-xs leading-snug capitalize gap-2">

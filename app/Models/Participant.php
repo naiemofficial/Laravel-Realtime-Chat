@@ -17,8 +17,8 @@ class Participant extends Model
         return User::whereIn('id', $userIds);
     }
 
-    public function user() : User
+    public function user()
     {
-        return $this->belongsTo(User::class)->first();
+        return $this->belongsTo(User::class);
     }
 }

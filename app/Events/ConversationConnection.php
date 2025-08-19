@@ -33,7 +33,7 @@ class ConversationConnection implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        $Recipient = $this->Conversation->participant($this->Sender, exclude: true)->user();
+        $Recipient = $this->Conversation?->participant($this->Sender, exclude: true)?->user;
         return [
             new PrivateChannel('conversation-connection.' . $Recipient->id)
         ];

@@ -67,7 +67,7 @@ export function executeDropMessage(from, data) {
             const icon_color    = (call.status === "cancelled") ? "text-red-500" : "";
             const pre_ext       = (call.status === "cancelled") ? "Missed" : "";
             const text          = `${pre_ext} ${call.type} ${message.type}`;
-            const status    = (call.status === "declined") ? call.status : "";
+            const status    = ["busy", "declined", "accepted", "ended"].includes(call?.status) ? call.status : "";
 
             li.innerHTML = `
                 <div class='block'>
@@ -140,10 +140,50 @@ export function executeDropMessage(from, data) {
 
 
 
+function init_Call(wire, Call, max_call_pickup_time) {
+    const callDiv = document.querySelector('#call');
+    if (!callDiv) return;
+
+    if (callDiv.callInterval) {
+        clearInterval(callDiv.callInterval);
+    }
+
+    const startTime = new Date();
+
+    callDiv.callInterval = setInterval(() => {
+        const span = callDiv.querySelector('#call-text');
+        if (!span) {
+            clearInterval(callDiv.callInterval);
+            delete callDiv.callInterval;
+            return;
+        }
+
+        const elapsed = Math.floor((new Date() - startTime) / 1000);
+
+        if (Call?.status === 'accepted') {
+            span.innerText = elapsed;
+        }
+
+        if (elapsed >= max_call_pickup_time) {
+            clearInterval(callDiv.callInterval);
+            delete callDiv.callInterval;
+            wire.cancelDeclineEndCall();
+        }
+    }, 1000);
+}
+
+
+
+
+
+
+
+
+
 
 
 
 // Bind with window -----------------------------------------
 Object.assign(window, {
-    revealAndScroll
+    revealAndScroll, init_Call
 });

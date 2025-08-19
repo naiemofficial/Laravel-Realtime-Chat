@@ -19,12 +19,12 @@ class Message extends Model
         return $this->belongsTo(Conversation::class);
     }
 
-    public function participant(){
-        return $this->belongsTo(Participant::class);
+    public function user(){
+        return $this->belongsTo(User::class);
     }
 
-    public function user(){
-        return $this->belongsTo(User::class)->first();
+    public function recipient(){
+        return $this->conversation?->participant($this->user, exclude: true)?->user;
     }
 
     public function call(){
