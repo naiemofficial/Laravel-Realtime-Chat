@@ -181,7 +181,11 @@ function init_Call(wire, Call, settings) {
 
             if (Call?.status === 'accepted') {
                 const callTime = formatCallTime(elapsed);
-                time.innerText = callTime;
+                time.setAttribute('data-text', callTime);
+
+                if(elapsed % 3 === 0) {
+                    wire?.pingCall();
+                }
             } else if (elapsed >= settings.ringTime) {
                 clearInterval(callDiv.callInterval);
                 delete callDiv.callInterval;

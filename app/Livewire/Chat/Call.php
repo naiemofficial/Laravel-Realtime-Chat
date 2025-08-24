@@ -39,7 +39,8 @@ class Call extends Component
     public $peerSettings;
     public function mount(): void {
         $this->settings = (object) [
-            'isMuted' => false,
+            'mic' => true,
+            'camera' => true,
             'ringTime' => 10
         ];
         $this->peerSettings = $this->settings;
@@ -206,21 +207,37 @@ class Call extends Component
 
     public function receiveCall(){
         $this->Call?->update(['status' => 'accepted', 'accepted_at' => now()]);
-        $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'refreshCall' ]);
+        $this->WS_send([ 'type' => 'FUNCTION', 'functions' => [
+            'refreshCall',
+            'updatePeerSettings' => ['settings' => $this->settings], // Sending my settings to peer
+            'sendMySettingsToPeer' // Receive back peer settings
+        ] ]);
     }
 
     private function refreshCall(): void {
         $this->Call?->refresh();
     }
 
+    private function updatePeerSettings(array $settings): void {
+        $this->peerSettings = (object) $settings;
+    }
 
-    public function muteUnmute(): void {
-        $this->settings->isMuted = !$this->settings->isMuted;
+    private function sendMySettingsToPeer(): void {
         $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'updatePeerSettings', 'args' => ['settings' => $this->settings] ]);
     }
 
-    private function updatePeerSettings(array $settings): void {
-        $this->peerSettings = (object) $settings;
+    public function muteUnmute(): void {
+        $this->settings->mic = !$this->settings->mic;
+        if($this->Call?->status === 'accepted'){
+            $this->sendMySettingsToPeer();
+        }
+    }
+
+    public function cameraOnOff(): void {
+        $this->settings->camera = !$this->settings->camera;
+        if($this->Call?->status === 'accepted'){
+            $this->sendMySettingsToPeer();
+        }
     }
 
 

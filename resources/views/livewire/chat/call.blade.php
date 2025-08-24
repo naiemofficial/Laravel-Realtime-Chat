@@ -13,7 +13,7 @@
         x-init="init_Call($wire, @js(['status' => $Call?->status]), @js($settings))"
     >
         <!-- Caller Info -->
-        <div class="flex items-center gap-x-3 pr-3">
+        <div class="flex items-center gap-x-3 pr-3 min-w-[200px]">
             <div class="inline-flex relative">
                 <span class="inline-flex items-center justify-center h-[35px] w-[35px] min-w-[35px] border border-double border-gray-200 rounded-full text-gray-300 bg-gray-50 text-sm">
                     <i class="fa-duotone fa-solid fa-user"></i>
@@ -21,15 +21,16 @@
             </div>
             <div class="inline-flex flex-col gap-y-1 text-xs">
                 <div class="font-semibold text-gray-800 leading-[1]">{{ $peerUser?->name }}</div>
-                <div class="inline-flex flex-row gap-0.5 text-gray-500 leading-[1]" style="zoom: 0.9;">
-                    @if($peerSettings->isMuted)
+                <div class="inline-flex flex-row gap-1.5 text-gray-500 leading-[1]" style="zoom: 0.9;">
+                    @if($peerSettings?->mic === false || $peerSettings?->camera === false)
                         <div class="inline-flex flex-row gap-1.5">
-                            <i class="fa-solid fa-microphone-slash text-red-500"></i>
+                            @if($peerSettings?->mic === false)<i class="fa-solid fa-microphone-slash text-red-500"></i>@endif
+                            @if($peerSettings?->camera === false)<i class="fa-solid fa-video-slash text-red-500"></i>@endif
                         </div>
                     @endif
                     <div id="call-text">
                         @if($Call?->status === 'accepted')
-                            <time class="min-w-9"></time>
+                            <time class="min-w-9" wire:ignore></time>
                         @elseif($Call?->status === 'pending')
                             {{ $callText }}
                         @endif
@@ -44,12 +45,24 @@
                 <button
                     class="px-3 py-1.5 text-sm rounded-full active:scale-95 transition flex items-center gap-1"
                     @disabled(in_array($Call?->status, ['cancelled', 'declined', 'ended']))
-                    :class="$wire.settings.isMuted ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-200 hover:bg-gray-300'"
+                    :class="!$wire.settings.mic ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-200 hover:bg-gray-300'"
                     wire:click="muteUnmute"
                 >
-                    <i class="fa-solid"
-                       :class="$wire.settings.isMuted ? 'fa-microphone-slash text-red-500' : 'fa-microphone text-gray-700'"></i>
+                    <i class="fa-solid" :class="!$wire.settings.mic ? 'fa-microphone-slash text-red-500' : 'fa-microphone text-gray-700'"></i>
                 </button>
+            @endif
+
+            @if($Call?->type === 'video')
+                @if($sendingCall || ($incomingCall && $Call?->status === 'accepted'))
+                    <button
+                        class="px-3 py-1.5 text-sm rounded-full active:scale-95 transition flex items-center gap-1"
+                        @disabled(in_array($Call?->status, ['cancelled', 'declined', 'ended']))
+                        :class="!$wire.settings.camera ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-200 hover:bg-gray-300'"
+                        wire:click="cameraOnOff"
+                    >
+                        <i class="fa-solid" :class="!$wire.settings.camera ? 'fa-video-slash text-red-500' : 'fa-video text-gray-700'"></i>
+                    </button>
+                @endif
             @endif
 
             @if($incomingCall && $Call?->status === 'pending')
