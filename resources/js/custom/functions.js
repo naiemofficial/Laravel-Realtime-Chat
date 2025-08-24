@@ -192,6 +192,16 @@ function init_Call(wire, Call, settings) {
                 wire?.cancelDeclineEndCall();
             }
         }, 1000);
+
+
+        let p = 1;
+        callDiv.pingInterval = setInterval(() => {
+            const ping = callDiv.querySelector('#call-text .ping');
+            if(ping){
+                if (ping) ping.innerText = ['.', '..', '...'][p % 3]
+            }
+            p++;
+        }, 300)
     }
 }
 

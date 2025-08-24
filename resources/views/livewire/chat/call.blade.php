@@ -25,14 +25,19 @@
                     @if($peerSettings?->mic === false || $peerSettings?->camera === false)
                         <div class="inline-flex flex-row gap-1.5">
                             @if($peerSettings?->mic === false)<i class="fa-solid fa-microphone-slash text-red-500"></i>@endif
-                            @if($peerSettings?->camera === false)<i class="fa-solid fa-video-slash text-red-500"></i>@endif
+                            @if($peerSettings?->camera === false) <i class="fa-solid fa-video-slash text-red-500"></i>@endif
                         </div>
                     @endif
                     <div id="call-text">
                         @if($Call?->status === 'accepted')
                             <time class="min-w-9" wire:ignore></time>
                         @elseif($Call?->status === 'pending')
-                            {{ $callText }}
+                            @if($sendingCall === true && $peerSettings->ringing === true)
+                               Ringing
+                            @else
+                                {{ $callText }}
+                            @endif
+                            <span class="ping" wire:ignore></span>
                         @endif
                     </div>
                 </div>

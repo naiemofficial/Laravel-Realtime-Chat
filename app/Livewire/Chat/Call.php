@@ -41,6 +41,7 @@ class Call extends Component
         $this->settings = (object) [
             'mic' => true,
             'camera' => true,
+            'ringing' => false,
             'ringTime' => 10
         ];
         $this->peerSettings = $this->settings;
@@ -135,8 +136,9 @@ class Call extends Component
 
     private function sendingCall(): void {
         $this->peerUser = $this->Call?->receiver();
-        $this->callText = 'Calling...';
+        $this->callText = 'Calling';
         $this->sendingCall = true;
+        $this->settings->ringing = true;
 
         broadcast(new ConversationConnection($this->Conversation, Auth::user(), $this->Message));
     }
@@ -153,13 +155,14 @@ class Call extends Component
 
         $this->init($message_id);
         $this->peerUser = $this->Call?->caller();
-        $this->callText = 'Incoming call...';
+        $this->callText = 'Incoming call';
 
         if ($this->Call instanceof CallModel && $this->Call?->exists()) {
             $this->incomingCall = true;
+            $this->settings->ringing = true;
 
             // Send a response to caller that call is ringing
-            $this->WS_send([ 'type' => 'RESPONSE', 'response'  => 'ringing', 'text' => 'Ringing...' ]);
+            $this->sendMySettingsToPeer();
         }
     }
 
@@ -289,9 +292,9 @@ class Call extends Component
 
     private function WS_Response($_RESPONSE): void {
         $response = $_RESPONSE?->response;
-        if($response === 'ringing'){
+        /*if($response === 'ringing'){
             $this->callText = $_RESPONSE?->text ?? $this->callText;
-        }
+        }*/
     }
 
 
