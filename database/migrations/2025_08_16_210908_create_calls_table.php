@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'busy', 'cancelled', 'declined', 'accepted', 'ended'])->default('pending');
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('ended_at')->nullable();
+            $table->timestamp('last_ping')->nullable();
             $table->timestamps();
         });
     }

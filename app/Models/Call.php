@@ -8,11 +8,12 @@ class Call extends Model
 {
     //
     protected $fillable = [
-        'message_id',
-        'type',
-        'status',
-        'accepted_at',
-        'ended_at'
+	    'message_id',
+	    'type',
+	    'status',
+	    'accepted_at',
+	    'ended_at',
+	    'last_ping'
     ];
 
     public function message(){

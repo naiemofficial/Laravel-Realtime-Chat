@@ -3,6 +3,7 @@
 namespace App\Livewire\Chat;
 
 use App\Events\ConversationConnection;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\MessageController;
 use App\Http\Middleware\UserAuth;
 use App\Models\Conversation;
@@ -13,6 +14,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use PhpParser\Node\Expr\Cast\Object_;
 use ReflectionMethod;
 use stdClass;
 
@@ -24,23 +26,31 @@ class Call extends Component
     public ?Conversation $Conversation = null;
     public ?Message $Message = null;
     public ?CallModel $Call = null;
+
     public array $call = [];
-    public array $fromCall = [];
+
     public ?User $peerUser = null;
 
-    public ?int $recipientId = null;
     public bool $sendingCall = false;
     public bool $incomingCall = false;
     public ?string $callText = null;
-    public $calling = false;
-    public ?string $callStatus = null;
-    public bool $isMuted = false;
 
-    public $max_call_pickup_time = 600; // seconds
-    public $elapsed_pickup_time = 0;
-    public $elapsed_call_time = 0;
-    private bool $stop_refresh = false;
-    private $last_status;
+    public $settings;
+    public $peerSettings;
+    public function mount(): void {
+        $this->settings = (object) [
+            'isMuted' => false,
+            'ringTime' => 10
+        ];
+        $this->peerSettings = $this->settings;
+    }
+
+    private function callArray() : array {
+        $call = $this->Call->toArray();
+        $call['settings'] = $this->settings;
+        return $call;
+    }
+
 
     private function callInProgress() : void {
         $this->dispatch('refresh-message-alert', response: ['error' => 'A call is already in progress.']);
@@ -66,7 +76,7 @@ class Call extends Component
                 $this->Call = $this->Message->call();
                 if(!$this->Call) $this->incomingCallID();
             }
-            $this->call = $this->Call->toArray() ?? [];
+            $this->call = $this->callArray() ?? [];
         }
     }
     private function init_temp(int $message_id): object {
@@ -180,7 +190,7 @@ class Call extends Component
             }
 
             // $this->Call->refresh();
-            $this->Message->call = $this->Call->toArray();
+            $this->Message->call = $this->callArray() ?? [];
 
             if($by_self){
                 $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => !$by_self] ]);
@@ -196,18 +206,22 @@ class Call extends Component
 
     public function receiveCall(){
         $this->Call?->update(['status' => 'accepted', 'accepted_at' => now()]);
-        $this->WS_send([ 'type' => 'FUNCTION', 'functions' => ['refreshCall', 'resetTimer'] ]);
+        $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'refreshCall' ]);
     }
 
     private function refreshCall(): void {
         $this->Call?->refresh();
     }
 
-    private function resetTimer(): void {
-        $this->elapsed_call_time = 0;
+
+    public function muteUnmute(): void {
+        $this->settings->isMuted = !$this->settings->isMuted;
+        $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'updatePeerSettings', 'args' => ['settings' => $this->settings] ]);
     }
 
-
+    private function updatePeerSettings(array $settings): void {
+        $this->peerSettings = (object) $settings;
+    }
 
 
 
@@ -232,21 +246,21 @@ class Call extends Component
 
     #[On('WS_Receive')]
     public function WS_Receive($response){
-        $this->fromCall = $response['call'] ?? [];
+        $response = (object) $response;
+        $fromCall = (object) ($response?->call ?? []);
 
-        if((isset($this->fromCall['id']) && $this->fromCall['id'] === $this->Call?->id) || (isset($response['MANDATE']) && $response['MANDATE'] === true)){
-            if($response['type'] === 'RESPONSE'){
+        if(($fromCall?->id === $this->Call?->id) || (($response?->MANDATE ?? null) === true)){
+            if($response?->type === 'RESPONSE'){
                 $this->WS_Response($response);
             }
 
 
-            else if($response['type'] === 'ACTION'){
-                $action = $response['action'];
-
+            else if($response?->type === 'ACTION'){
+                $action = $response?->action;
             }
 
 
-            else if ($response['type'] === 'FUNCTION') {
+            else if ($response?->type === 'FUNCTION') {
                 $this->call_function($response);
             }
 
@@ -256,10 +270,10 @@ class Call extends Component
 
 
 
-    private function WS_Response($_response): void {
-        $response = $_response['response'];
+    private function WS_Response($_RESPONSE): void {
+        $response = $_RESPONSE?->response;
         if($response === 'ringing'){
-            $this->callText = !empty($_response['text']) ? $_response['text']: $this->callText;
+            $this->callText = $_RESPONSE?->text ?? $this->callText;
         }
     }
 
@@ -286,13 +300,13 @@ class Call extends Component
         $functions = [];
 
         // Function
-        if(!empty($response['function'])){
-            $functions[] = [ 'name' => $response['function'], 'args' => $response['args'] ?? [] ];
+        if(!empty($response?->function)){
+            $functions[] = [ 'name' => $response?->function, 'args' => $response?->args ?? [] ];
         }
 
         // Functions
-        if (!empty($response['functions'])) {
-            foreach ($response['functions'] as $index => $function) {
+        if (!empty($response?->functions)) {
+            foreach ($response?->functions as $index => $function) {
                 $fn_name = is_array($function) ? $index : $function;
                 $fn_args = is_array($function) ? $function : [];
 
@@ -347,6 +361,10 @@ class Call extends Component
                 }
             }
         }
+    }
+
+    public function pingCall(){
+        $this->Call?->update(['last_ping' => now()]);
     }
 
 

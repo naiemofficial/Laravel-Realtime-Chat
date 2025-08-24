@@ -1,7 +1,6 @@
 <div x-data>
     @if($sendingCall || $incomingCall)
     <div
-        x-init="init_Call($wire, @js(['status' => $Call?->status]), @js($max_call_pickup_time))"
         x-show="$wire.sendingCall || $wire.incomingCall"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -9,25 +8,33 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 transform translate-x-0"
         x-transition:leave-end="opacity-0 transform translate-x-4"
-        class="flex items-center justify-between max-w-md w-full bg-gray-100 shadow-sm rounded-md px-4 py-2 border border-gray-200"
+        class="relative flex items-center justify-between max-w-md w-full bg-gray-100 shadow-sm rounded-md px-4 py-2 border border-gray-200"
         id="call"
+        x-init="init_Call($wire, @js(['status' => $Call?->status]), @js($settings))"
     >
         <!-- Caller Info -->
         <div class="flex items-center gap-x-3 pr-3">
-            <span class="inline-flex items-center justify-center h-[35px] w-[35px] min-w-[35px] border border-double border-gray-200 rounded-full text-gray-300 bg-gray-50 text-sm">
-                <i class="fa-duotone fa-solid fa-user"></i>
-            </span>
-            <div class="inline-flex flex-col gap-y-1">
-                <p class="text-xs font-semibold text-gray-800 leading-[1]">{{ $peerUser?->name }}</p>
-                <p class="text-xs text-gray-500 leading-[1]" style="zoom: 0.9;">
-                    <span id="call-text">
+            <div class="inline-flex relative">
+                <span class="inline-flex items-center justify-center h-[35px] w-[35px] min-w-[35px] border border-double border-gray-200 rounded-full text-gray-300 bg-gray-50 text-sm">
+                    <i class="fa-duotone fa-solid fa-user"></i>
+                </span>
+            </div>
+            <div class="inline-flex flex-col gap-y-1 text-xs">
+                <div class="font-semibold text-gray-800 leading-[1]">{{ $peerUser?->name }}</div>
+                <div class="inline-flex flex-row gap-0.5 text-gray-500 leading-[1]" style="zoom: 0.9;">
+                    @if($peerSettings->isMuted)
+                        <div class="inline-flex flex-row gap-1.5">
+                            <i class="fa-solid fa-microphone-slash text-red-500"></i>
+                        </div>
+                    @endif
+                    <div id="call-text">
                         @if($Call?->status === 'accepted')
-                            {{ $elapsed_call_time }}
+                            <time class="min-w-9"></time>
                         @elseif($Call?->status === 'pending')
                             {{ $callText }}
                         @endif
-                    </span>
-                </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -37,10 +44,11 @@
                 <button
                     class="px-3 py-1.5 text-sm rounded-full active:scale-95 transition flex items-center gap-1"
                     @disabled(in_array($Call?->status, ['cancelled', 'declined', 'ended']))
-                    :class="$wire.isMuted ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-200 hover:bg-gray-300'"
+                    :class="$wire.settings.isMuted ? 'bg-red-100 hover:bg-red-200' : 'bg-gray-200 hover:bg-gray-300'"
+                    wire:click="muteUnmute"
                 >
                     <i class="fa-solid"
-                       :class="$wire.isMuted ? 'fa-microphone-slash text-red-500' : 'fa-microphone text-gray-700'"></i>
+                       :class="$wire.settings.isMuted ? 'fa-microphone-slash text-red-500' : 'fa-microphone text-gray-700'"></i>
                 </button>
             @endif
 

@@ -140,41 +140,56 @@ export function executeDropMessage(from, data) {
 
 
 
-function init_Call(wire, Call, max_call_pickup_time) {
+
+function formatCallTime(elapsed) {
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const seconds = elapsed % 60;
+
+    if (hours > 0) {
+        return (
+            String(hours).padStart(2, '0') + ':' +
+            String(minutes).padStart(2, '0') + ':' +
+            String(seconds).padStart(2, '0')
+        );
+    } else {
+        return (
+            String(minutes).padStart(2, '0') + ':' +
+            String(seconds).padStart(2, '0')
+        );
+    }
+}
+
+function init_Call(wire, Call, settings) {
     const callDiv = document.querySelector('#call');
     if (!callDiv) return;
 
-    if (callDiv.callInterval) {
-        clearInterval(callDiv.callInterval);
+    if (callDiv?.callInterval) {
+        // clearInterval(callDiv.callInterval);
+    } else {
+        const startTime = new Date();
+
+        callDiv.callInterval = setInterval(() => {
+            const time = callDiv.querySelector('#call-text > time');
+            if (!time) {
+                clearInterval(callDiv.callInterval);
+                delete callDiv.callInterval;
+                return;
+            }
+
+            const elapsed = Math.floor((new Date() - startTime) / 1000);
+
+            if (Call?.status === 'accepted') {
+                const callTime = formatCallTime(elapsed);
+                time.innerText = callTime;
+            } else if (elapsed >= settings.ringTime) {
+                clearInterval(callDiv.callInterval);
+                delete callDiv.callInterval;
+                wire?.cancelDeclineEndCall();
+            }
+        }, 1000);
     }
-
-    const startTime = new Date();
-
-    callDiv.callInterval = setInterval(() => {
-        const span = callDiv.querySelector('#call-text');
-        if (!span) {
-            clearInterval(callDiv.callInterval);
-            delete callDiv.callInterval;
-            return;
-        }
-
-        const elapsed = Math.floor((new Date() - startTime) / 1000);
-
-        if (Call?.status === 'accepted') {
-            span.innerText = elapsed;
-        }
-
-        if (elapsed >= max_call_pickup_time) {
-            clearInterval(callDiv.callInterval);
-            delete callDiv.callInterval;
-            wire.cancelDeclineEndCall();
-        }
-    }, 1000);
 }
-
-
-
-
 
 
 
