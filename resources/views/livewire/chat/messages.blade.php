@@ -16,7 +16,7 @@ use \Carbon\Carbon;
     class="h-full flex flex-col relative">
         @if($conversationSelected)
             <div class="conversation-header flex items-center justify-between gap-3 p-3 px-8 sticky top-0 bg-gray-100 shadow-sm z-10">
-                <div class="inline-flex items-center gap">
+                <div class="inline-flex items-center gap-2">
                     <div class="w-10 h-10 bg-white rounded-full inline-flex items-center justify-center text-gray-300">
                         <i class="fa-duotone fa-solid fa-user"></i>
                     </div>
@@ -88,13 +88,18 @@ use \Carbon\Carbon;
                                             $pre_text   = ($Call->status === 'cancelled') ? 'Missed' : '';
                                             $text       = $pre_text . ' ' . $Call->type . ' ' . $message->type;
                                             $status     = in_array($Call?->status, ['busy', 'declined', 'accepted', 'ended']) ? $Call->status : '';
+                                            $duration   = $this->callDuration($Call);
                                         @endphp
                                         <div class="inline-block bg-gray-100 border border-gray-200 text-gray-700 rounded-lg px-4 py-3 max-w-xs">
                                             <div class="inline-flex flex-row items-center text-xs leading-snug capitalize gap-2">
                                                 <i class="{{ $icon }} {{ $icon_color }}"></i>
                                                 <div class="inline-flex flex-col gap-0 leading-snug text-left">
                                                     <span class="font-medium">{{ $text }}</span>
-                                                    @if(strlen($status))<span style="zoom: 0.9">{{ $status }}</span>@endif
+                                                    @if(in_array($Call->status, ['accepted', 'ended']) && !empty($duration))
+                                                        <span style="zoom: 0.9">{{ $duration }}</span>
+                                                    @elseif(!empty($status))
+                                                        <span style="zoom: 0.9">{{ $status }}</span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

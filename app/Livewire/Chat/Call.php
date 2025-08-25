@@ -35,9 +35,9 @@ class Call extends Component
     public bool $incomingCall = false;
     public ?string $callText = null;
 
-    public $settings;
-    public $peerSettings;
-    public function mount(): void {
+    public $settings = null;
+    public $peerSettings = null;
+    public function init_settings(): void {
         $this->settings = (object) [
             'mic' => true,
             'camera' => true,
@@ -63,6 +63,7 @@ class Call extends Component
 
 
     public function init(int $message_id): void {
+        $this->reset();
         $this->Message  = Message::find($message_id);
         $this->Conversation = Conversation::find($this->Message?->conversation_id);
 
@@ -138,7 +139,7 @@ class Call extends Component
         $this->peerUser = $this->Call?->receiver();
         $this->callText = 'Calling';
         $this->sendingCall = true;
-        $this->settings->ringing = true;
+        if(empty($this->settings)) $this->init_settings();
 
         broadcast(new ConversationConnection($this->Conversation, Auth::user(), $this->Message));
     }
@@ -159,6 +160,7 @@ class Call extends Component
 
         if ($this->Call instanceof CallModel && $this->Call?->exists()) {
             $this->incomingCall = true;
+            if(empty($this->settings)) $this->init_settings();
             $this->settings->ringing = true;
 
             // Send a response to caller that call is ringing
@@ -183,17 +185,25 @@ class Call extends Component
 
             if($this->sendingCall){
                 if($by_self && !$already_ended ){
-                    $this->Call->update(['status' => (($this->Call->status === 'accepted') ? 'ended' : 'cancelled')]);
+                    if($this->Call->status === 'accepted'){
+                        $this->Call->update(['status' => 'ended', 'ended_at' => now()]);
+                    } else {
+                        $this->Call->update(['status' => 'cancelled']);
+                    }
                 }
                 $this->sendingCall = false;
             } elseif($this->incomingCall){
                 if($by_self && !$already_ended){
-                    $this->Call?->update(['status' => (($this->Call->status === 'accepted') ? 'ended' : 'declined')]);
+                    if($this->Call->status === 'accepted'){
+                        $this->Call->update(['status' => 'ended', 'ended_at' => now()]);
+                    } else {
+                        $this->Call->update(['status' => 'declined']);
+                    }
                 }
                 $this->incomingCall = false;
             }
 
-            // $this->Call->refresh();
+            $this->Call->refresh();
             $this->Message->call = $this->callArray() ?? [];
 
             if($by_self){
@@ -209,7 +219,7 @@ class Call extends Component
 
 
     public function receiveCall(){
-        $this->Call?->update(['status' => 'accepted', 'accepted_at' => now()]);
+        $this->Call?->update(['status' => 'accepted', 'accepted_at' => now(), 'last_ping' => now()]);
         $this->WS_send([ 'type' => 'FUNCTION', 'functions' => [
             'refreshCall',
             'updatePeerSettings' => ['settings' => $this->settings], // Sending my settings to peer

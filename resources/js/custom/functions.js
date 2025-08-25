@@ -24,6 +24,35 @@ function revealAndScroll(n, index, el, delay) {
 }
 window.revealAndScroll = revealAndScroll;
 
+
+
+
+function callDuration(call) {
+    const timestamps = {
+        from: (['accepted', 'ended'].includes(call.status) && call.accepted_at) ? call.accepted_at : '',
+        to: call.ended_at ?? (call.last_ping ?? '')
+    };
+
+    if (!timestamps.from || !timestamps.to) return '';
+
+    const from = new Date(timestamps.from);
+    const to = new Date(timestamps.to);
+
+    let seconds = Math.abs(Math.floor((to - from) / 1000));
+
+    if (seconds < 60) {
+        return `${seconds}s`;
+    } else if (seconds < 3600) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}m${s > 0 ? ' ' + s + 's' : ''}`;
+    } else {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        return `${h}hr${m > 0 ? ' ' + m + 'm' : ''}`;
+    }
+}
+
 export function executeDropMessage(from, data) {
     return new Promise((resolve) => {
         const message = data.message ?? data;
@@ -67,7 +96,9 @@ export function executeDropMessage(from, data) {
             const icon_color    = (call.status === "cancelled") ? "text-red-500" : "";
             const pre_ext       = (call.status === "cancelled") ? "Missed" : "";
             const text          = `${pre_ext} ${call.type} ${message.type}`;
-            const status    = ["busy", "declined", "accepted", "ended"].includes(call?.status) ? call.status : "";
+            const status        = ["busy", "declined", "accepted", "ended"].includes(call?.status) ? call.status : "";
+            const duration      = callDuration(call);
+
 
             li.innerHTML = `
                 <div class='block'>
@@ -76,7 +107,11 @@ export function executeDropMessage(from, data) {
                             <i class='${icon} ${icon_color}'></i>
                             <div class='inline-flex flex-col gap-0 leading-snug text-left'>
                                 <span class='font-medium'>${text}</span>
-                                ${status.length > 0 ? `<span style='zoom:0.9'>${status}</span>` : ""}
+                                ${
+                                    (['accepted', 'ended'].includes(call.status) && duration)
+                                    ? `<span style="zoom: 0.9">${duration}</span>`
+                                    : (status ? `<span style="zoom: 0.9">${status}</span>` : '')
+                                }
                             </div>
                         </div>
                     </div>
@@ -114,7 +149,12 @@ export function executeDropMessage(from, data) {
         const targetConversationId = Number(message.conversation_id);
 
         if(targetConversationId === selectedConversation && selectedConversation === openedConversation){
-            ul.appendChild(li);
+            const existing_li = ul?.querySelector(`li[wire\\:key="${message.id}"]`);
+            if(existing_li){
+                existing_li.replaceWith(li);
+            } else {
+                ul.appendChild(li);
+            }
             resolve({
                 status: true,
                 data: {
@@ -198,7 +238,7 @@ function init_Call(wire, Call, settings) {
         callDiv.pingInterval = setInterval(() => {
             const ping = callDiv.querySelector('#call-text .ping');
             if(ping){
-                if (ping) ping.innerText = ['.', '..', '...'][p % 3]
+                if (ping) ping.innerText = ['', '.', '..', '...'][p % 4]
             }
             p++;
         }, 300)
