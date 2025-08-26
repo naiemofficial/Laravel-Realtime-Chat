@@ -4,7 +4,7 @@
         x-show="$wire.sendingCall || $wire.incomingCall"
         id="call"
         wire:key="{{$Call->id}}"
-        x-init="init_Call($wire, @js(['status' => $Call?->status]), @js($settings))"
+        x-init="init_Call($wire, @js($sendingCall), @js(['status' => $Call?->status]), @js(['ringTime' => $settings?->ringTime]), @js(['ringing' => $peerSettings?->ringing]))"
     >
         <div
             x-transition:enter="transition ease-out duration-300"
@@ -21,13 +21,18 @@
                 <!-- Video Feeds -->
                 <div class="relative max-w-lg w-full bg-gray-300 shadow-lg rounded-md overflow-hidden border border-gray-300 p-1.5">
                     <div class="relative flex justify-between items-center rounded-md bg-gray-200 gap-2">
-                        <span class="absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-200 rounded-full text-gray-300 bg-gray-50 text-lg" style="transform: translate(-50%, calc(-50% - 20px))">
+
+                        <span class="z-10 shadow-md shadow-gray-700 drop-shadow-md absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-200 rounded-full text-gray-300 bg-gray-50 text-lg" style="transform: translate(-50%, calc(-50% - 20px))">
                             <i class="fa-duotone fa-solid fa-user"></i>
                         </span>
 
                         <!-- Peer Video -->
-                        <div class="flex-1 overflow-hidden relative">
-                            <video autoplay playsinline x-ref="peerVideo" class="rounded-md w-full h-full object-cover"></video>
+                        <div class="flex-1 rounded-md overflow-hidden relative">
+
+                            <div class="video-call-bg absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center"  style="background-image: url('{{url("/assets/images/nature.jpg") }}')"></div>
+
+                            <video autoplay playsinline x-ref="peerVideo" class="w-full h-full object-cover"></video>
+
                             @if($peerSettings?->mic === false)
                                 <i class="fa-solid fa-microphone-slash text-red-500 absolute top-2 left-2"></i>
                             @endif
@@ -46,8 +51,13 @@
 
 
             <!-- Caller Info -->
-            <div @if($Call->type === 'video') class="px-10 absolute bottom-0 right-1/2" style="zoom: 0.9; transform: translate(50%, -50%)" @endif >
-                <div class="relative flex items-center justify-between max-w-md w-full bg-gray-100 shadow-sm rounded-md px-4 py-2 border border-gray-200">
+            <div @if($Call->type === 'video') class="px-10 absolute bottom-0 right-1/2" style="zoom: 0.9; transform: translate(50%, calc(-50% + 5px))" @endif >
+                <div
+                    class="relative flex items-center justify-between max-w-md w-full bg-gray-100 shadow-sm rounded-md px-4 py-2 border border-gray-200"
+                    @if($Call->type === 'video')
+                        style="border-color: #f0f0f075; background-color: #f0f0f075; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(3px)"
+                    @endif
+                >
                     <div class="flex items-center gap-x-3 pr-3 min-w-[150px]">
                         @if($Call->type === 'voice')
                             <div class="inline-flex relative">

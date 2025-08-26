@@ -82,8 +82,7 @@ class Messages extends Component
         }
     }
 
-    public function render()
-    {
+    public function render(){
         return view('livewire.chat.messages');
     }
 }

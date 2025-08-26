@@ -83,3 +83,13 @@ ul#chat-box[role="list"] li[data-sender="participant"] + li[data-sender="partici
 #call time:empty::before {
     content: attr(data-text);
 }
+
+.video-call-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: #00000045;
+}

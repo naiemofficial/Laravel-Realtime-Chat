@@ -1,16 +1,18 @@
 import {executeDropMessage} from "../custom/functions.js";
 
 export default async function Conversation(response){
-    if(Object.keys(response?.data).length > 0){
-        const _response = response?.data;
-        if(_response?.to === 'CALL'){
-            Livewire.dispatch('WS_Receive', {response: _response});
-        }
-    } else if(response?.Conversation && response?.Sender && response?.Message){
 
+    console.log(response);
+
+
+    const data = response.data;
+    if(data?.to === 'CALL'){
+        Livewire.dispatch('WS_Receive', {response: data});
+    } else if(response?.Conversation && response?.Sender && response?.Message){
         Livewire.dispatch('refresh-conversations');
 
         const message = response.Message;
+
         if(message.type === 'starter'){
 
         } else if(message.type === 'regular'){
@@ -25,7 +27,7 @@ export default async function Conversation(response){
             }
 
         else if(message.type === 'call'){
-            Livewire.dispatch('incoming-call', {message_id: message?.id});
+            Livewire.dispatch('incoming-call', {message_id: message?.id, data: data});
         }
     }
 }

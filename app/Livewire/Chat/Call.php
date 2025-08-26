@@ -42,7 +42,7 @@ class Call extends Component
             'mic' => true,
             'camera' => true,
             'ringing' => false,
-            'ringTime' => 10
+            'ringTime' => 6000
         ];
         $this->peerSettings = $this->settings;
     }
@@ -141,14 +141,24 @@ class Call extends Component
         $this->sendingCall = true;
         if(empty($this->settings)) $this->init_settings();
 
-        broadcast(new ConversationConnection($this->Conversation, Auth::user(), $this->Message));
+        $this->broadcastCall();
+    }
+
+    public function broadcastCall(bool $checkCondition = false, $data = []): void {
+        if(!$checkCondition || ($this->Call?->status === 'pending' && $this->peerSettings?->ringing === false)){
+            broadcast(new ConversationConnection($this->Conversation, Auth::user(), $this->Message, $data));
+        }
     }
 
 
 
+
     #[On('incoming-call')]
-    public function incomingCall(int $message_id): void {
-        if($this->Call?->exists()){
+    public function incomingCall(int $message_id, array $data = []): void {
+        $data = (sizeof($data) > 0 ? (object) $data : null);
+        $skipBusy = ($data?->skipBusy === true) ? true : false;
+
+        if($this->Call?->exists() && !$skipBusy){
             $this->callBusy($message_id);
             return;
         }

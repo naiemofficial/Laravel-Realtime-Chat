@@ -200,50 +200,66 @@ function formatCallTime(elapsed) {
     }
 }
 
-function init_Call(wire, Call, settings) {
+function init_Call(wire, sendingCall, Call, settings, peerSettings) {
     const callDiv = document.querySelector('#call');
     if (!callDiv) return;
 
-    if (callDiv?.callInterval) {
-        // clearInterval(callDiv.callInterval);
-    } else {
-        const startTime = new Date();
-
-        callDiv.callInterval = setInterval(() => {
-            const time = callDiv.querySelector('#call-text > time');
-            if (!time) {
-                clearInterval(callDiv.callInterval);
-                delete callDiv.callInterval;
-                return;
-            }
-
-            const elapsed = Math.floor((new Date() - startTime) / 1000);
-
-            if (Call?.status === 'accepted') {
-                const callTime = formatCallTime(elapsed);
-                time.setAttribute('data-text', callTime);
-
-                if(elapsed % 3 === 0) {
-                    wire?.pingCall();
-                }
-            } else if (elapsed >= settings.ringTime) {
-                clearInterval(callDiv.callInterval);
-                delete callDiv.callInterval;
-                wire?.cancelDeclineEndCall();
-            }
-        }, 1000);
-
-
-        let p = 1;
-        callDiv.pingInterval = setInterval(() => {
-            const ping = callDiv.querySelector('#call-text .ping');
-            if(ping){
-                if (ping) ping.innerText = ['', '.', '..', '...'][p % 4]
-            }
-            p++;
-        }, 300)
+    if (callDiv.callInterval) {
+        clearInterval(callDiv.callInterval);
     }
+
+    const startTime = new Date();
+
+    callDiv.callInterval = setInterval(() => {
+        const span = callDiv.querySelector('#call-text');
+        const callExist = document.querySelector('#call');
+        if(!span || !callExist){
+            clearInterval(callDiv.callInterval);
+            delete callDiv.callInterval;
+            return;
+        }
+
+        const elapsed = Math.floor((new Date() - startTime) / 1000);
+
+        if(Call?.status === 'pending'){
+            if (elapsed >= settings.ringTime) {
+                if(sendingCall){
+                    clearInterval(callDiv.callInterval);
+                    delete callDiv.callInterval;
+                    wire.cancelDeclineEndCall();
+                } else {
+                    // Disable action buttons
+                }
+            } else if(peerSettings?.ringing === false){
+                // Re-try call if recipient not connected
+                if(elapsed % 3 === 0){
+                    wire?.broadcastCall(true, {skipBusy: true});
+                }
+            }
+        } else if (Call?.status === 'accepted') {
+            const time = callDiv.querySelector('#call-text > time');
+            time?.setAttribute('data-text', formatCallTime(elapsed));
+
+            if(callDiv.pingInterval){
+                clearInterval(callDiv.callInterval);
+                delete callDiv.callInterval;
+            }
+            if(elapsed % 3 === 0){
+                wire?.pingCall();
+            }
+        }
+    }, 1000);
+
+
+
+    let p = 1;
+    callDiv.pingInterval = setInterval(() => {
+        const ping = callDiv.querySelector('#call-text .ping');
+        if (ping) ping.innerText = ['', '.', '..', '...'][p % 4];
+        p++;
+    }, 400)
 }
+
 
 
 
