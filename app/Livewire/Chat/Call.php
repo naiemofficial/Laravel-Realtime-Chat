@@ -21,7 +21,7 @@ use stdClass;
 
 class Call extends Component
 {
-    private array $temp = [];
+    public array $temp = [];
 
     public ?Conversation $Conversation = null;
     public ?Message $Message = null;
@@ -136,6 +136,8 @@ class Call extends Component
 
 
     private function sendingCall(): void {
+        $this->dispatch('request-for-media-permission', $this->Call->type);
+
         $this->peerUser = $this->Call?->receiver();
         $this->callText = 'Calling';
         $this->sendingCall = true;
@@ -173,6 +175,8 @@ class Call extends Component
             if(empty($this->settings)) $this->init_settings();
             $this->settings->ringing = true;
 
+            $this->dispatch('request-for-media-permission', $this->Call->type);
+
             // Send a response to caller that call is ringing
             $this->sendMySettingsToPeer();
         }
@@ -191,7 +195,6 @@ class Call extends Component
     public function cancelDeclineEndCall(bool $by_self = true): void {
         if($this->Call instanceof CallModel && $this->Call?->exists()){
             $already_ended = in_array($this->Call->status, ['cancelled', 'declined', 'ended']);
-
 
             if($this->sendingCall){
                 if($by_self && !$already_ended ){
@@ -405,6 +408,18 @@ class Call extends Component
 
     public function pingCall(){
         $this->Call?->update(['last_ping' => now()]);
+    }
+
+
+
+
+
+
+
+
+    // Render
+    public function updateTemp(string $key, $value){
+        $this->temp[$key] = $value;
     }
 
 

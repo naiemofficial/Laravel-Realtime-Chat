@@ -1,10 +1,6 @@
-import {executeDropMessage} from "../custom/functions.js";
+import {executeDropMessage} from "../custom/script.js";
 
 export default async function Conversation(response){
-
-    console.log(response);
-
-
     const data = response.data;
     if(data?.to === 'CALL'){
         Livewire.dispatch('WS_Receive', {response: data});

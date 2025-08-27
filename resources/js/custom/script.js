@@ -221,19 +221,32 @@ function init_Call(wire, sendingCall, Call, settings, peerSettings) {
 
         const elapsed = Math.floor((new Date() - startTime) / 1000);
 
+        if(elapsed % 3 === 0){
+            if (Call?.type === 'video') {
+                const video_feed = callExist?.querySelector('#video-feed');
+                if (video_feed && wire?.updateTemp) {
+                    // wire.updateTemp('video-feed-style', {
+                    //     left: video_feed.style.left || null,
+                    //     top: video_feed.style.top || null,
+                    //     position: video_feed.style.position || null
+                    // });
+                }
+            }
+        }
+
         if(Call?.status === 'pending'){
             if (elapsed >= settings.ringTime) {
                 if(sendingCall){
                     clearInterval(callDiv.callInterval);
                     delete callDiv.callInterval;
-                    wire.cancelDeclineEndCall();
+                    // wire.cancelDeclineEndCall();
                 } else {
                     // Disable action buttons
                 }
             } else if(peerSettings?.ringing === false){
                 // Re-try call if recipient not connected
                 if(elapsed % 3 === 0){
-                    wire?.broadcastCall(true, {skipBusy: true});
+                    // wire?.broadcastCall(true, {skipBusy: true});
                 }
             }
         } else if (Call?.status === 'accepted') {
@@ -241,11 +254,11 @@ function init_Call(wire, sendingCall, Call, settings, peerSettings) {
             time?.setAttribute('data-text', formatCallTime(elapsed));
 
             if(callDiv.pingInterval){
-                clearInterval(callDiv.callInterval);
-                delete callDiv.callInterval;
+                clearInterval(callDiv.pingInterval);
+                delete callDiv.pingInterval;
             }
             if(elapsed % 3 === 0){
-                wire?.pingCall();
+                // wire?.pingCall();
             }
         }
     }, 1000);
@@ -268,7 +281,138 @@ function init_Call(wire, sendingCall, Call, settings, peerSettings) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --------------- START - Video Call Drag
+function setVideoFeedPosition(wire, style, el) {
+    const hasLeft = style?.left ?? false;
+    const hasTop  = style?.top ?? false;
+    const hasPosition = style?.position ?? false;
+
+    if (hasLeft) {
+        el.style.left = style.left;
+    } else {
+        const rect = el.getBoundingClientRect();
+        const left = (rect.width/2) + 'px';
+        el.style.left = `calc(50% - ${left})`;
+    }
+
+    el.style.top = hasTop ? style.top : '5px';
+    el.style.position = hasPosition ? style.position:  'fixed';
+    el.style.transform = '';
+}
+
+
+document.addEventListener('mousedown', (event) => {
+    const target = event?.target;
+    const videoFeed = target?.id === 'video-feed' ? target : target?.closest('#video-feed');
+    if (!videoFeed) return;
+
+    event.preventDefault();
+    videoFeed.classList.add('dragging');
+
+    // Calculate offset of mouse inside element
+    const rect = videoFeed.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+
+    videoFeed.style.position = 'fixed';
+
+    function onMouseMove(e) {
+        videoFeed.style.left = e.clientX - offsetX + 'px';
+        videoFeed.style.top = e.clientY - offsetY + 'px';
+    }
+
+    function onMouseUp() {
+        videoFeed.classList.remove('dragging');
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+});
+// --------------- END - Video Call Drag
+
+
+
+
+
+
+
+export async function getLocalMedia(callType) {
+    try {
+        const constraints = callType === 'video' ? { video: true, audio: true } : { video: false, audio: true };
+        let localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const localVideo = document.querySelector('#call #video-feed [x-ref="localVideo"]');
+        localVideo.srcObject = localStream;
+        if (callType === 'voice') localVideo.muted = true;
+        return localStream;
+    } catch (err) {
+        console.error(err);
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Bind with window -----------------------------------------
 Object.assign(window, {
-    revealAndScroll, init_Call
+    revealAndScroll, init_Call, setVideoFeedPosition, getLocalMedia
 });
