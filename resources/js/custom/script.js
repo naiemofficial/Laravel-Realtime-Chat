@@ -286,7 +286,7 @@ async function init_Call(wire, sendingCall, Call, settings, peerSettings) {
                 delete callDiv.pingInterval;
             }
             if(elapsed % 3 === 0){
-                // wire?.pingCall();
+                wire?.pingCall();
             }
         }
     }, 1000);
