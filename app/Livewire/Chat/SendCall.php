@@ -14,11 +14,13 @@ class SendCall extends Component
     public $participantId;
 
     public function voiceCall(){
-        $this->dispatch('start-voice-call', conversation_id: $this->conversationId);
+        $this->dispatch('JS-start-voice-call', conversation_id: $this->conversationId);
+        // $this->dispatch('start-voice-call', conversation_id: $this->conversationId);
     }
 
     public function videoCall(){
-        $this->dispatch('start-video-call', conversation_id: $this->conversationId);
+        $this->dispatch('JS-start-video-call', conversation_id: $this->conversationId);
+        // $this->dispatch('start-video-call', conversation_id: $this->conversationId);
     }
 
 

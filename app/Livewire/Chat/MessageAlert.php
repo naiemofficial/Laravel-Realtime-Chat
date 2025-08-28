@@ -10,15 +10,16 @@ use Livewire\Component;
 class MessageAlert extends Component
 {
     #[On('refresh-message-alert')]
-    public function refreshMessageAlert($response): void {
+    public function refreshMessageAlert($response, $end_preference = []): void {
         Response::visualize(Message::class, $response, [
             'session-flash' => true,
             'template' => [
                 'key' => 'textOnly',
                 'wrapper' => true,
                 'key-based-color' => true,
-                'class' => 'line-clamp-2 px-2 py-0.5 border border-solid rounded-[20px]'
-            ]
+                'class' => 'line-clamp-2 px-2 py-0.5 border border-solid rounded-[20px]',
+                ...$end_preference
+            ],
         ]);
     }
 

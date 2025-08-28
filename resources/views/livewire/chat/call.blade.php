@@ -6,6 +6,42 @@
         wire:key="{{$Call->id}}"
         x-init="init_Call($wire, @js($sendingCall), @js(['status' => $Call?->status, 'type' => $Call?->type]), @js(['ringTime' => $settings?->ringTime]), @js(['ringing' => $peerSettings?->ringing]))"
     >
+
+        @if($Call->type === 'video' && ($Call->status === 'accepted' || $sendingCall))
+            <!-- Video Feeds -->
+            <div
+                wire:ignore
+                class="z-30"
+                id="video-feed"
+                x-data
+                x-init="setVideoFeedPosition($el)"
+            >
+                <div data-aria="video-feed" class="relative max-w-lg w-full bg-gray-300 shadow-lg rounded-md overflow-hidden border border-gray-300 p-1.5">
+                    <div class="relative overflow-hidden flex justify-between items-center rounded-md bg-gray-200 gap-2">
+
+                        <div class="video-call-overlay overflow-hidden rounded-md z-10 flex justify-center items-center absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center">
+                            <span class="z-[1] absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-700 rounded-full text-gray-500 bg-gray-800 text-lg" style="transform: translate(-50%, -50%)">
+                                <i class="fa-duotone fa-solid fa-user"></i>
+                            </span>
+                            <i class="fa-solid fa-circle-notch fa-spin text-white z-10"></i>
+                        </div>
+
+
+                        <!-- Peer Video -->
+                        <div class="flex-1 rounded-md overflow-hidden relative  transition-all duration-300">
+                            <video autoplay playsinline x-ref="peerVideo" class="w-full h-full bg-gray-900 object-cover"></video>
+                        </div>
+                        <!-- Local Video -->
+                        <div class="z-10 absolute right-1.5 top-1.5 w-16 h-16 bg-gray-800 rounded-md overflow-hidden border-none border-gray-600 transition-all duration-300">
+                            <video autoplay muted playsinline x-ref="localVideo" class="w-full h-full object-cover"></video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+
+
         <div
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-x-4"
@@ -14,39 +50,6 @@
             x-transition:leave-start="opacity-100 transform translate-x-0"
             x-transition:leave-end="opacity-0 transform translate-x-4"
         >
-            @if($Call->type === 'video' && $Call->status === 'accepted')
-                <!-- Video Feeds -->
-                <div
-                    class="z-30"
-                    id="video-feed"
-                    x-data
-                    x-init="setVideoFeedPosition($wire, @js($temp['video-feed-style'] ?? null), $el)"
-                    wire:key="{{ rand(1, 1000) }}"
-                >
-                    <div data-aria="video-feed" class="relative max-w-lg w-full bg-gray-300 shadow-lg rounded-md overflow-hidden border border-gray-300 p-1.5">
-                        <div class="relative overflow-hidden flex justify-between items-center rounded-md bg-gray-200 gap-2">
-
-                            <div class="video-call-overlay overflow-hidden rounded-md z-10 flex justify-center items-center absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center">
-                                <span class="z-10 shadow-md shadow-gray-700 drop-shadow-md absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-200 rounded-full text-gray-300 bg-gray-50 text-lg" style="transform: translate(-50%, -50%)">
-                                    <i class="fa-duotone fa-solid fa-user"></i>
-                                </span>
-                                <i class="fa-solid fa-circle-notch fa-spin text-white z-10"></i>
-                            </div>
-
-
-                            <!-- Peer Video -->
-                            <div class="flex-1 rounded-md overflow-hidden relative">
-                                <video autoplay playsinline x-ref="peerVideo" class="w-full h-full bg-gray-900 object-cover"></video>
-                            </div>
-
-                            <!-- Local Video -->
-                            <div class="absolute right-1.5 top-1.5 w-16 h-16 bg-gray-800 rounded-md overflow-hidden border border-gray-600">
-                                <video autoplay muted playsinline x-ref="localVideo" class="w-full h-full object-cover"></video>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
 
 
             <!-- Caller Info -->

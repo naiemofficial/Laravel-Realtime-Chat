@@ -53,7 +53,7 @@ class Response {
 
                 if(!empty($key_name)){
                     // Bucketing the message
-                    if (is_string($value)) {
+                    if (is_string($value)){
                         $final_message = $value;
                     } else if (is_array($value)) {
                         foreach ($value as $index => $message) {

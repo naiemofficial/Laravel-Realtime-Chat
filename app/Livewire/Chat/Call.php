@@ -95,12 +95,15 @@ class Call extends Component
     #[On('start-voice-call')]
     public function ___startVoiceCall($conversation_id){
         $this->startCall($conversation_id, 'voice');
+        // $this->dispatch('start-voice-stream');
     }
 
 
     #[On('start-video-call')]
     public function ___startVideoCall($conversation_id){
         $this->startCall($conversation_id, 'video');
+        // $this->dispatch('start-voice-stream');
+        // $this->dispatch('start-video-stream');
     }
 
     private function startCall(int $conversation_id, string $call): void {
@@ -175,8 +178,6 @@ class Call extends Component
             if(empty($this->settings)) $this->init_settings();
             $this->settings->ringing = true;
 
-            $this->dispatch('request-for-media-permission', $this->Call->type);
-
             // Send a response to caller that call is ringing
             $this->sendMySettingsToPeer();
         }
@@ -223,6 +224,9 @@ class Call extends Component
                 $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => !$by_self] ]);
             }
 
+            $this->dispatch('stop-voice-stream');
+            $this->dispatch('stop-video-stream');
+
             $this->dispatch('execute-drop-message', message: $this->Message);
             $this->reset();
         }
@@ -233,6 +237,7 @@ class Call extends Component
 
     public function receiveCall(){
         $this->Call?->update(['status' => 'accepted', 'accepted_at' => now(), 'last_ping' => now()]);
+        $this->dispatch('request-for-media-permission', $this->Call->type);
         $this->WS_send([ 'type' => 'FUNCTION', 'functions' => [
             'refreshCall',
             'updatePeerSettings' => ['settings' => $this->settings], // Sending my settings to peer

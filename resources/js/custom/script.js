@@ -200,7 +200,7 @@ function formatCallTime(elapsed) {
     }
 }
 
-function init_Call(wire, sendingCall, Call, settings, peerSettings) {
+async function init_Call(wire, sendingCall, Call, settings, peerSettings) {
     const callDiv = document.querySelector('#call');
     if (!callDiv) return;
 
@@ -208,9 +208,37 @@ function init_Call(wire, sendingCall, Call, settings, peerSettings) {
         clearInterval(callDiv.callInterval);
     }
 
+
+
+
+
+
+
+    const video_feed = document.querySelector('#call #video-feed');
+    if(Call?.type === 'video' && video_feed){
+        startVideoStream();
+        const video_local_div = video_feed?.querySelector('video[x-ref="localVideo"]')?.closest('div');
+        if(video_local_div && ['pending', 'accepted'].includes(Call?.status)){
+            if(Call.status === 'pending'){
+                Object.assign(video_local_div.style, { top:'0', right:'0', width:'100%', height:'100%' });
+            } else if(Call.status === 'accepted'){
+                video_local_div.removeAttribute('style');
+            }
+        }
+    } else {
+        video_feed?.remove();
+    }
+    // await getLocalMedia(Call?.type);
+
+
+
+
+
+
+
     const startTime = new Date();
 
-    callDiv.callInterval = setInterval(() => {
+    callDiv.callInterval = setInterval(async () => {
         const span = callDiv.querySelector('#call-text');
         const callExist = document.querySelector('#call');
         if(!span || !callExist){
@@ -239,14 +267,14 @@ function init_Call(wire, sendingCall, Call, settings, peerSettings) {
                 if(sendingCall){
                     clearInterval(callDiv.callInterval);
                     delete callDiv.callInterval;
-                    // wire.cancelDeclineEndCall();
+                    wire.cancelDeclineEndCall();
                 } else {
                     // Disable action buttons
                 }
             } else if(peerSettings?.ringing === false){
                 // Re-try call if recipient not connected
                 if(elapsed % 3 === 0){
-                    // wire?.broadcastCall(true, {skipBusy: true});
+                    wire?.broadcastCall(true, {skipBusy: true});
                 }
             }
         } else if (Call?.status === 'accepted') {
@@ -314,21 +342,12 @@ function init_Call(wire, sendingCall, Call, settings, peerSettings) {
 
 
 // --------------- START - Video Call Drag
-function setVideoFeedPosition(wire, style, el) {
-    const hasLeft = style?.left ?? false;
-    const hasTop  = style?.top ?? false;
-    const hasPosition = style?.position ?? false;
-
-    if (hasLeft) {
-        el.style.left = style.left;
-    } else {
-        const rect = el.getBoundingClientRect();
-        const left = (rect.width/2) + 'px';
-        el.style.left = `calc(50% - ${left})`;
-    }
-
-    el.style.top = hasTop ? style.top : '5px';
-    el.style.position = hasPosition ? style.position:  'fixed';
+function setVideoFeedPosition(el){
+    const rect = el.getBoundingClientRect();
+    const left = (rect.width/2) + 'px';
+    el.style.left = `calc(50% - ${left})`;
+    el.style.top = '5px';
+    el.style.position = 'fixed';
     el.style.transform = '';
 }
 
@@ -370,22 +389,59 @@ document.addEventListener('mousedown', (event) => {
 
 
 
-export async function getLocalMedia(callType) {
-    try {
-        const constraints = callType === 'video' ? { video: true, audio: true } : { video: false, audio: true };
-        let localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        const localVideo = document.querySelector('#call #video-feed [x-ref="localVideo"]');
-        localVideo.srcObject = localStream;
-        if (callType === 'voice') localVideo.muted = true;
-        return localStream;
-    } catch (err) {
-        console.error(err);
-        return null;
+
+
+
+
+export async function checkLocalMediaPermissions(callType) {
+    callType = Array.isArray(callType) ? callType[0] : (typeof callType === 'string' ? callType : null);
+    if (!['voice', 'video'].includes(callType)) return callType;
+
+    const notify = msg => {
+        if (Livewire) {
+            Livewire.dispatch('refresh-message-alert', { response: { error: msg }, end_preference: { html: true } });
+        } else {
+            alert(msg);
+        }
+    };
+
+    if (callType === 'voice') {
+        try {
+            const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+            return { mic, camera: null };
+        } catch {
+            notify('<i class="fas fa-microphone"></i> Microphone access denied or unavailable.');
+            return { mic: null, camera: null };
+        }
+    }
+
+    if (callType === 'video') {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            return { mic: stream, camera: stream };
+        } catch {
+            notify('<i class="fas fa-video"></i> Camera or microphone access denied or unavailable.');
+            return { mic: null, camera: null };
+        }
     }
 }
 
 
+export async function startVoiceStream() {
 
+}
+export async function startVideoStream() {
+    let localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    const localVideo = document.querySelector('#call #video-feed [x-ref="localVideo"]');
+    localVideo.srcObject = localStream;
+}
+
+export async function stopVoiceStream() {
+    return await navigator.mediaDevices.getUserMedia({ audio: false });
+}
+export async function stopVideoStream() {
+    return await navigator.mediaDevices.getUserMedia({ audio: false, video: false });
+}
 
 
 
@@ -414,5 +470,12 @@ export async function getLocalMedia(callType) {
 
 // Bind with window -----------------------------------------
 Object.assign(window, {
-    revealAndScroll, init_Call, setVideoFeedPosition, getLocalMedia
+    revealAndScroll,
+    init_Call,
+    setVideoFeedPosition,
+    checkLocalMediaPermissions,
+    startVoiceStream,
+    startVideoStream,
+    stopVoiceStream,
+    stopVideoStream
 });

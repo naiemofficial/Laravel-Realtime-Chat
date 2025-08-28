@@ -1,6 +1,7 @@
 @php
     $wrapper    = (!empty($template['wrapper']) && $template['wrapper'] == true);
     $kbc        = (!empty($template['key-based-color']) && $template['key-based-color'] == true);
+    $html       = (!empty($template['html']) && $template['html'] == true);
     $classes    = isset($template['class']) ? $template['class'] : '';
 
     $hasLineClamp = strpos($classes, 'line-clamp') !== false;
@@ -31,5 +32,9 @@
         title="{{ $hasLineClamp ? $escapedHtmlMessage : '' }}"
     >
 @endif
-    {{ $message }}
+    @if($html)
+        {!! $message !!}
+    @else
+        {{ $message }}
+    @endif
 @if($wrapper) </div> @endif
