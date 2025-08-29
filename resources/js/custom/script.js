@@ -393,54 +393,111 @@ document.addEventListener('mousedown', (event) => {
 
 
 
-export async function checkLocalMediaPermissions(callType) {
-    callType = Array.isArray(callType) ? callType[0] : (typeof callType === 'string' ? callType : null);
-    if (!['voice', 'video'].includes(callType)) return callType;
 
+
+
+
+
+
+
+
+
+export async function checkMicCameraPermission() {
+    const mic = await navigator.permissions.query({ name: 'microphone' });
+    const camera = await navigator.permissions.query({ name: 'camera' });
+
+    return {
+        mic: mic.state === 'granted',
+        camera: camera.state === 'granted'
+    };
+}
+
+export async function requestForMicCameraPermission(type = null, combine = false) {
     const notify = msg => {
-        if (Livewire) {
-            Livewire.dispatch('refresh-message-alert', { response: { error: msg }, end_preference: { html: true } });
+        if (typeof Livewire !== 'undefined') {
+            Livewire.dispatch('refresh-message-alert', {
+                response: { error: msg },
+                end_preference: { html: true }
+            });
         } else {
             alert(msg);
         }
     };
 
-    if (callType === 'voice') {
-        try {
-            const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
-            return { mic, camera: null };
-        } catch {
-            notify('<i class="fas fa-microphone"></i> Microphone access denied or unavailable.');
-            return { mic: null, camera: null };
-        }
-    }
+    try {
+        let constraints = {};
 
-    if (callType === 'video') {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            return { mic: stream, camera: stream };
-        } catch {
-            notify('<i class="fas fa-video"></i> Camera or microphone access denied or unavailable.');
-            return { mic: null, camera: null };
-        }
+        if (type === "mic") constraints.audio = true;
+        else if (type === "camera") constraints.video = true;
+        else constraints = { audio: true, video: true }; // request both if type not specified
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        const micStream = type === "camera" ? null : new MediaStream(stream.getAudioTracks());
+        const cameraStream = type === "mic" ? null : new MediaStream(stream.getVideoTracks());
+
+        if (type === "mic") return micStream;
+        if (type === "camera") return cameraStream;
+
+        return combine ?  stream : { mic: micStream, camera: cameraStream };
+    } catch (error) {
+        console.warn("Permission:" error);
+        if (type === "mic") notify('<i class="fas fa-microphone"></i> Microphone access denied or unavailable.');
+        if (type === "camera") notify('<i class="fas fa-video"></i> Camera access denied or unavailable.');
+        if (type === null) notify('<i class="fas fa-microphone"></i> Microphone or <i class="fas fa-video"></i> Camera access denied or unavailable.');
+
+        if (type === "mic") return null;
+        if (type === "camera") return null;
+        return { mic: null, camera: null };
     }
 }
 
 
-export async function startVoiceStream() {
+export function validateMicStream(stream) {
+    return stream instanceof MediaStream && stream.getAudioTracks().length && stream.getAudioTracks()[0].readyState === "live";
+}
+export function validateCameraStream(stream) {
+    return stream instanceof MediaStream && stream.getVideoTracks().length && stream.getVideoTracks()[0].readyState === "live";
+}
+export function validateStreams(micStream, camStream, combine = false) {
+    const mic = validateMicStream(micStream);
+    const camera = validateCameraStream(camStream);
+    return combine ? (mic && camera) : { mic, camera };
+}
+
+export const validateStream = (combinedStream, combine = false) => {
+    if (!(combinedStream instanceof MediaStream)) return combine ? false : { mic: false, camera: false };
+    const mic = validateMicStream(new MediaStream(combinedStream.getAudioTracks()));
+    const camera = validateCameraStream(new MediaStream(combinedStream.getVideoTracks()));
+    return combine ? (mic && camera) : { mic, camera };
+};
+
+export function stopStream(stream) {
+    if (!(stream instanceof MediaStream)) return false;
+    stream.getTracks().forEach(track => track.stop());
+    return true;
+}
+
+export function stopMicStream(micStream) {
+    if (!(micStream instanceof MediaStream)) return false;
+    micStream.getAudioTracks().forEach(track => track.stop());
+    return true;
+}
+
+export function stopCameraStream(cameraStream) {
+    if (!(cameraStream instanceof MediaStream)) return false;
+    cameraStream.getVideoTracks().forEach(track => track.stop());
+    return true;
+}
+
+
+export async function startMicStream() {
 
 }
 export async function startVideoStream() {
     let localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
     const localVideo = document.querySelector('#call #video-feed [x-ref="localVideo"]');
     localVideo.srcObject = localStream;
-}
-
-export async function stopVoiceStream() {
-    return await navigator.mediaDevices.getUserMedia({ audio: false });
-}
-export async function stopVideoStream() {
-    return await navigator.mediaDevices.getUserMedia({ audio: false, video: false });
 }
 
 
@@ -472,10 +529,5 @@ export async function stopVideoStream() {
 Object.assign(window, {
     revealAndScroll,
     init_Call,
-    setVideoFeedPosition,
-    checkLocalMediaPermissions,
-    startVoiceStream,
-    startVideoStream,
-    stopVoiceStream,
-    stopVideoStream
+    setVideoFeedPosition
 });
