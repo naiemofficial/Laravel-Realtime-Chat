@@ -28,6 +28,7 @@ class Call extends Component
     public ?CallModel $Call = null;
 
     public array $call = [];
+    private $stream = stdClass::class;
 
     public ?User $peerUser = null;
 
@@ -95,15 +96,12 @@ class Call extends Component
     #[On('start-voice-call')]
     public function ___startVoiceCall($conversation_id){
         $this->startCall($conversation_id, 'voice');
-        // $this->dispatch('start-voice-stream');
     }
 
 
     #[On('start-video-call')]
     public function ___startVideoCall($conversation_id){
         $this->startCall($conversation_id, 'video');
-        // $this->dispatch('start-voice-stream');
-        // $this->dispatch('start-video-stream');
     }
 
     private function startCall(int $conversation_id, string $call): void {

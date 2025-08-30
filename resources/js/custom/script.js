@@ -209,6 +209,11 @@ async function init_Call(wire, sendingCall, Call, settings, peerSettings) {
     }
 
 
+    if(typeof callDiv?.stream !== MediaStream){
+        callDiv.stream = await startMicStream();
+        console.log(callDiv.stream);
+    }
+
 
 
 
@@ -441,7 +446,7 @@ export async function requestForMicCameraPermission(type = null, combine = false
 
         return combine ?  stream : { mic: micStream, camera: cameraStream };
     } catch (error) {
-        console.warn("Permission:" error);
+        console.warn("Permission: " + error);
         if (type === "mic") notify('<i class="fas fa-microphone"></i> Microphone access denied or unavailable.');
         if (type === "camera") notify('<i class="fas fa-video"></i> Camera access denied or unavailable.');
         if (type === null) notify('<i class="fas fa-microphone"></i> Microphone or <i class="fas fa-video"></i> Camera access denied or unavailable.');
@@ -494,6 +499,8 @@ export function stopCameraStream(cameraStream) {
 export async function startMicStream() {
 
 }
+
+
 export async function startVideoStream() {
     let localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
     const localVideo = document.querySelector('#call #video-feed [x-ref="localVideo"]');

@@ -3,6 +3,7 @@ import {
     requestForMicCameraPermission,
     executeDropMessage,
     startMicStream,
+    stopCameraStream,
     startVideoStream, validateMicStream, validateCameraStream, stopMicStream, validateStreams, stopStream,
     validateStream
 } from "./custom/script.js";
@@ -14,8 +15,9 @@ if(typeof Livewire === 'object'){
         }
     });
 
-    Livewire.on('request-for-mic-camera-permission', async data => {
-        // const localMedia = await checkLocalMediaPermissions('voice');
+    Livewire.on('request-for-mic-camera-permission', async type => {
+        type = Array.isArray(type) ? type[0] : type;
+        await requestForMicCameraPermission(type);
     });
 
     Livewire.on('JS-start-voice-call', async data => {
@@ -38,14 +40,13 @@ if(typeof Livewire === 'object'){
     Livewire.on('JS-start-video-call', async data => {
         const conversation_id = data?.conversation_id ?? null;
 
+        let stream = null;
         let {mic: has_mic_permission, camera: has_camera_permission} = await checkMicCameraPermission();
         if(!has_mic_permission || !has_camera_permission){
-            const stream = await requestForMicCameraPermission(null, true);
+            stream = await requestForMicCameraPermission(null, true);
             ({mic: has_mic_permission, camera: has_camera_permission} = validateStream(stream));
             stopStream(stream)
         }
-
-        console.log(has_mic_permission, has_camera_permission);
 
         if(has_mic_permission && has_camera_permission){
             Livewire.dispatch('start-video-call', {conversation_id: conversation_id});
@@ -71,7 +72,7 @@ if(typeof Livewire === 'object'){
 
 
     Livewire.on('stop-video-stream', () => {
-        stopVideoStream();
+        stopCameraStream();
     });
 }
 
