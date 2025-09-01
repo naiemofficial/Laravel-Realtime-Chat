@@ -4,7 +4,7 @@
         x-show="$wire.sendingCall || $wire.incomingCall"
         id="call"
         wire:key="{{$Call->id}}"
-        x-init="init_Call($wire, @js($sendingCall), @js(['status' => $Call?->status, 'type' => $Call?->type]), @js(['ringTime' => $settings?->ringTime]), @js(['ringing' => $peerSettings?->ringing]))"
+        x-init="init_Call($wire, @js($sendingCall), @js($incomingCall), @js(['status' => $Call?->status, 'type' => $Call?->type]), @js($settings), @js(['ringing' => $peerSettings?->ringing]))"
     >
 
         @if($Call->type === 'video' && ($Call->status === 'accepted' || $sendingCall))
@@ -18,22 +18,27 @@
             >
                 <div data-aria="video-feed" class="relative max-w-lg w-full bg-gray-300 shadow-lg rounded-md overflow-hidden border border-gray-300 p-1.5">
                     <div class="relative overflow-hidden flex justify-between items-center rounded-md bg-gray-200 gap-2">
-
-                        <div class="video-call-overlay overflow-hidden rounded-md z-10 flex justify-center items-center absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center">
-                            <span class="z-[1] absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-700 rounded-full text-gray-500 bg-gray-800 text-lg" style="transform: translate(-50%, -50%)">
-                                <i class="fa-duotone fa-solid fa-user"></i>
-                            </span>
-                            <i class="fa-solid fa-circle-notch fa-spin text-white z-10"></i>
-                        </div>
-
-
                         <!-- Peer Video -->
-                        <div class="flex-1 rounded-md overflow-hidden relative  transition-all duration-300">
-                            <video autoplay playsinline x-ref="peerVideo" class="w-full h-full bg-gray-900 object-cover"></video>
+                        <div class="z-10 flex-1 rounded-md overflow-hidden relative transition-all duration-300">
+                            <div class="video-call-overlay overflow-hidden rounded-md z-10 flex justify-center items-center absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center">
+                                <span class="user-image z-[1] absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-700 rounded-full text-gray-500 bg-gray-800 text-lg" style="transform: translate(-50%, -50%)">
+                                    <i class="fa-duotone fa-solid fa-user"></i>
+                                </span>
+                                <i class="buffering loading fa-solid fa-circle-notch fa-spin text-white z-10"></i>
+                            </div>
+
+                            <video autoplay playsinline x-ref="peer" class="w-full h-full max-w-[300px] min-w-[300px] max-h-[165px] min-h-[165px] bg-gray-900 object-cover" style="transform: scaleX(-1)"></video>
                         </div>
+
                         <!-- Local Video -->
-                        <div class="z-10 absolute right-1.5 top-1.5 w-16 h-16 bg-gray-800 rounded-md overflow-hidden border-none border-gray-600 transition-all duration-300">
-                            <video autoplay muted playsinline x-ref="localVideo" class="w-full h-full object-cover"></video>
+                        <div class="z-20 absolute right-1.5 top-1.5 w-auto h-14 bg-gray-800 rounded-md overflow-hidden border-none border-gray-600 transition-all duration-300">
+                            <div class="video-call-overlay overflow-hidden rounded-md z-10 flex justify-center items-center absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center">
+                                <span class="user-image z-[21] absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-700 rounded-full text-gray-500 bg-gray-800 text-lg" style="transform: translate(-50%, -50%); zoom: 0.55;">
+                                    <i class="fa-duotone fa-solid fa-user"></i>
+                                </span>
+                                <i class="buffering loading fa-solid fa-circle-notch fa-spin text-white z-[22]" style="zoom: 0.7"></i>
+                            </div>
+                            <video autoplay muted playsinline x-ref="local" class="w-full h-full object-cover transform" style="transform: scaleX(-1)"></video>
                         </div>
                     </div>
                 </div>

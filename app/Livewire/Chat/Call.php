@@ -28,7 +28,6 @@ class Call extends Component
     public ?CallModel $Call = null;
 
     public array $call = [];
-    private $stream = stdClass::class;
 
     public ?User $peerUser = null;
 
@@ -40,17 +39,19 @@ class Call extends Component
     public $peerSettings = null;
     public function init_settings(): void {
         $this->settings = (object) [
-            'mic' => true,
-            'camera' => true,
-            'ringing' => false,
-            'ringTime' => 6000
+            'mic'       => true,
+            'camera'    => true,
+            'ringing'   => false,
+            'ringTime'  => 6000,
+            'stream'    => null
         ];
         $this->peerSettings = $this->settings;
     }
 
-    private function callArray() : array {
-        $call = $this->Call->toArray();
-        $call['settings'] = $this->settings;
+    public function callArray() : array {
+        $call               = $this->Call->toArray();
+        $call['settings']   = $this->settings;
+        $call['caller']     = $this->Call->caller()?->only(['id', 'name']);
         return $call;
     }
 
@@ -193,7 +194,7 @@ class Call extends Component
 
     public function cancelDeclineEndCall(bool $by_self = true): void {
         if($this->Call instanceof CallModel && $this->Call?->exists()){
-            $already_ended = in_array($this->Call->status, ['cancelled', 'declined', 'ended']);
+            $already_ended = in_array($this->Call->status, ['cancelled', 'declined', 'ended', 'stopped']);
 
             if($this->sendingCall){
                 if($by_self && !$already_ended ){
@@ -222,9 +223,22 @@ class Call extends Component
                 $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => !$by_self] ]);
             }
 
-            $this->dispatch('stop-voice-stream');
-            $this->dispatch('stop-video-stream');
+            $this->dispatch('stop-stream', $this->settings?->stream);
+            $this->dispatch('execute-drop-message', message: $this->Message);
+            $this->reset();
+        }
+    }
 
+
+    public function stopCall(): void {
+        $already_ended = in_array($this->Call->status, ['cancelled', 'declined', 'ended', 'stopped']);
+        if(!$already_ended){
+            $this->Call->update(['status' => 'stopped', 'ended_at' => now()]);
+            $this->Call->refresh();
+            $this->sendingCall = false;
+            $this->incomingCall = false;
+            $this->Message->call = $this->callArray() ?? [];
+            $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => false] ]);
             $this->dispatch('execute-drop-message', message: $this->Message);
             $this->reset();
         }
@@ -235,12 +249,12 @@ class Call extends Component
 
     public function receiveCall(){
         $this->Call?->update(['status' => 'accepted', 'accepted_at' => now(), 'last_ping' => now()]);
-        $this->dispatch('request-for-media-permission', $this->Call->type);
         $this->WS_send([ 'type' => 'FUNCTION', 'functions' => [
             'refreshCall',
             'updatePeerSettings' => ['settings' => $this->settings], // Sending my settings to peer
             'sendMySettingsToPeer' // Receive back peer settings
         ] ]);
+
     }
 
     private function refreshCall(): void {
@@ -267,6 +281,7 @@ class Call extends Component
         if($this->Call?->status === 'accepted'){
             $this->sendMySettingsToPeer();
         }
+        $this->dispatch('camera-on-off', $this->settings->camera);
     }
 
 
@@ -277,11 +292,17 @@ class Call extends Component
 
 
 
-
-    private function WS_send($data){
+    #[On('WS_send')]
+    public function WS_send($data){
         $custom_header = ['to' => 'CALL', 'call' => $this->call];
         $data = array_merge($custom_header, $data);
         broadcast(new ConversationConnection($this->Conversation, Auth::user(), NULL, $data));
+    }
+
+    #[On('WS_send_x')]
+    public function WS_send_x($data){
+        $custom_header = ['to' => 'CALL', 'call' => $this->call];
+        $data = array_merge($custom_header, $data);
     }
 
 
@@ -416,7 +437,10 @@ class Call extends Component
 
 
 
-
+    // Stream
+    public function setStream($stream){
+        $this->settings->stream = $stream;
+    }
 
 
 

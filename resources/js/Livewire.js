@@ -5,7 +5,7 @@ import {
     startMicStream,
     stopCameraStream,
     startVideoStream, validateMicStream, validateCameraStream, stopMicStream, validateStreams, stopStream,
-    validateStream
+    validateStream, cameraOnOff, start_webrtc_connection, handleOffer, handleAnswer, handleCandidate
 } from "./custom/script.js";
 
 if(typeof Livewire === 'object'){
@@ -73,6 +73,30 @@ if(typeof Livewire === 'object'){
 
     Livewire.on('stop-video-stream', () => {
         stopCameraStream();
+    });
+
+
+    Livewire.on('stop-stream', (stream) => {
+        stream = Array.isArray(stream) ? stream[0] : stream;
+        stopStream(stream);
+    });
+
+
+    Livewire.on('camera-on-off', (status) => {
+        status = Array.isArray(status) ? status[0] : status;
+        cameraOnOff(status);
+    });
+
+
+    Livewire.on('start-webrtc-connection', (call) => {
+        call = Array.isArray(call) ? call[0] : call;
+        start_webrtc_connection(call);
+    });
+
+    Livewire.on('webrtc-message', (data) => {
+        if (data.type === 'offer') handleOffer(data.sdp);
+        else if (data.type === 'answer') handleAnswer(data.sdp);
+        else if (data.type === 'ice-candidate') handleCandidate(data.candidate);
     });
 }
 

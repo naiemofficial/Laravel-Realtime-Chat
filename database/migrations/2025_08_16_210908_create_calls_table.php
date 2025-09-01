@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Message::class)->constrained()->cascadeOnDelete();
             $table->enum('type', ['voice', 'video'])->default('voice');
-            $table->enum('status', ['pending', 'busy', 'cancelled', 'declined', 'accepted', 'ended'])->default('pending');
+            $table->enum('status', ['pending', 'busy', 'cancelled', 'declined', 'accepted', 'ended', 'stopped'])->default('pending');
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('ended_at')->nullable();
             $table->timestamp('last_ping')->nullable();
