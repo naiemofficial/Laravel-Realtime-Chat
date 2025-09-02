@@ -173,12 +173,15 @@ class Call extends Component
         $this->callText = 'Incoming call';
 
         if ($this->Call instanceof CallModel && $this->Call?->exists()) {
-            $this->incomingCall = true;
-            if(empty($this->settings)) $this->init_settings();
-            $this->settings->ringing = true;
+            $already_ended = in_array($this->Call->status, ['cancelled', 'declined', 'ended', 'stopped']);
+            if(!$already_ended){
+                $this->incomingCall = true;
+                if(empty($this->settings)) $this->init_settings();
 
-            // Send a response to caller that call is ringing
-            $this->sendMySettingsToPeer();
+                // Send a response to caller that call is ringing
+                $this->settings->ringing = true;
+                $this->sendMySettingsToPeer();
+            }
         }
     }
 

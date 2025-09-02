@@ -239,8 +239,12 @@ async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSe
                 wire?.setStream(stream.id);
 
                 const {mic: micStream, video: videoStream} = destructStream(stream);
-                const videoElement = callDiv?.querySelector('video[x-ref="local"]');
-                visualizeStream(videoStream, videoElement);
+                if(Call?.type === 'voice'){
+
+                } else if(Call?.type === 'video'){
+                    const videoElement = callDiv?.querySelector('video[x-ref="local"]');
+                    visualizeStream(videoStream, videoElement);
+                }
             } else if(stream === null){
                 if(sendingCall){
                     wire?.cancelDeclineEndCall();
@@ -675,6 +679,7 @@ export function cameraOnOff(status) {
 
 
 function toggleOverlay(peerVideo, show = true) {
+    console.log(peerVideo);
     const overlay = peerVideo?.closest('div')?.querySelector('.video-call-overlay');
     const userImage = overlay?.querySelector('.user-image');
     const buffering = overlay?.querySelector('.buffering');
@@ -710,6 +715,7 @@ export async function start_webrtc_connection(wire) {
 
     const stream_id = settings?.stream;
     const stream = streams.get(stream_id);
+
     if (!stream || !(stream instanceof MediaStream)) {
         console.error('No local stream found for this call.');
         return;
@@ -737,7 +743,7 @@ export async function start_webrtc_connection(wire) {
                 peerVideo.srcObject = event.streams[0];
 
                 // Hide overlay when stream starts
-                toggleOverlay(peerVideo, false);
+                toggleOverlay(peerVideo.srcObject, false);
 
                 peerVideo.play().catch(console.error);
 
@@ -823,7 +829,7 @@ export async function handleOffer(wire, offer) {
             sdp: answer
         });
 
-        console.log('Answer created and sent:', answer);
+        // console.log('Answer created and sent:', answer);
     } catch (err) {
         console.error('Failed to handle offer:', err);
     }
@@ -838,14 +844,14 @@ export async function handleAnswer(answer) {
     try {
         if (connection.signalingState === 'have-local-offer') {
             await connection.setRemoteDescription(new RTCSessionDescription(answer));
-            console.log('Remote description set from answer.');
+            // console.log('Remote description set from answer.');
         } else {
             // Wait until local offer is set
             const onStateChange = async () => {
                 if (connection.signalingState === 'have-local-offer') {
                     connection.removeEventListener('signalingstatechange', onStateChange);
                     await connection.setRemoteDescription(new RTCSessionDescription(answer));
-                    console.log('Remote description set from answer after local offer.');
+                    // console.log('Remote description set from answer after local offer.');
                 }
             };
             connection.addEventListener('signalingstatechange', onStateChange);
@@ -862,7 +868,7 @@ export async function handleCandidate(candidate) {
 
     try {
         await connection.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log('Added remote ICE candidate:', candidate);
+        // console.log('Added remote ICE candidate:', candidate);
     } catch (err) {
         console.error('Failed to add ICE candidate:', err);
     }
