@@ -210,7 +210,6 @@ function formatCallTime(elapsed) {
 }
 
 async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSettings) {
-
     const already_ended = ['cancelled', 'declined', 'ended', 'stopped'].includes(Call.status);
     if(!already_ended) {
         const callDiv = document.querySelector('#call');
@@ -255,14 +254,14 @@ async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSe
 
             // When incoming call
             if(Call?.status === 'accepted'){
-                start_webrtc_connection(wire)
+                start_webrtc_connection(wire, peerSettings)
             }
         }
 
         // When sending call
         if(callDiv?.sendingCallStream !== true && sendingCall && Call?.status === 'accepted'){
             callDiv.sendingCallStream = true;
-            start_webrtc_connection(wire)
+            start_webrtc_connection(wire, peerSettings)
         }
 
         // Visualize the stream
@@ -620,6 +619,10 @@ function visualizeStream(stream, videoElement) {
         return;
     }
 
+    stream.getVideoTracks()[0].addEventListener("mute", (event) => {
+        console.log(event);
+    });
+
     videoElement.srcObject = stream;
     videoElement.autoplay = true;
     videoElement.playsInline = true;
@@ -678,20 +681,20 @@ export function cameraOnOff(status) {
 
 
 
-function toggleOverlay(peerVideo, show = true) {
-    console.log(peerVideo);
+function toggleOverlay(peerVideo, peerSettings, loading = false) {
     const overlay = peerVideo?.closest('div')?.querySelector('.video-call-overlay');
     const userImage = overlay?.querySelector('.user-image');
     const buffering = overlay?.querySelector('.buffering');
 
-    if (show) {
-        overlay?.classList.remove('hidden');
-        userImage?.classList.remove('hidden');
-        buffering?.classList.remove('hidden');
-    } else {
+    const { camera } = peerSettings;
+    if (camera) {
         overlay?.classList.add('hidden');
         userImage?.classList.add('hidden');
         buffering?.classList.add('hidden');
+    } else {
+        overlay?.classList.remove('hidden');
+        userImage?.classList.remove('hidden');
+        if(loading) buffering?.classList.remove('hidden');
     }
 }
 
@@ -709,7 +712,7 @@ function toggleOverlay(peerVideo, show = true) {
 
 
 
-export async function start_webrtc_connection(wire) {
+export async function start_webrtc_connection(wire, peerSettings) {
     const call =  await wire?.callArray();
     const settings = call?.settings;
 
@@ -743,14 +746,14 @@ export async function start_webrtc_connection(wire) {
                 peerVideo.srcObject = event.streams[0];
 
                 // Hide overlay when stream starts
-                toggleOverlay(peerVideo.srcObject, false);
+                toggleOverlay(peerVideo, peerSettings);
 
                 peerVideo.play().catch(console.error);
 
                 // Show overlay if video is paused or ended
-                peerVideo.onpause = () => toggleOverlay(peerVideo, true);
-                peerVideo.onplaying = () => toggleOverlay(peerVideo, false);
-                peerVideo.onended = () => toggleOverlay(peerVideo, true);
+                // peerVideo.onpause = () => toggleOverlay(peerVideo, peerSettings);
+                // peerVideo.onplaying = () => toggleOverlay(peerVideo, peerSettings);
+                // peerVideo.onended = () => toggleOverlay(peerVideo, peerSettings);
             }
         }
 
@@ -907,7 +910,10 @@ export function manageRTC(data){
     }
 }
 
-
+export function refreshPeerSettings(settings){
+    const peerVideo = document.getElementById('call')?.querySelector('video[x-ref="peer"]');
+    toggleOverlay(peerVideo, settings);
+}
 
 
 

@@ -265,6 +265,7 @@ class Call extends Component
     }
 
     private function updatePeerSettings(array $settings): void {
+        $this->dispatch('refresh-peer-settings', $settings);
         $this->peerSettings = (object) $settings;
     }
 

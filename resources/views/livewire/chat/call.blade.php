@@ -4,10 +4,10 @@
         x-show="$wire.sendingCall || $wire.incomingCall"
         id="call"
         wire:key="{{$Call->id}}"
-        x-init="init_Call($wire, @js($sendingCall), @js($incomingCall), @js(['status' => $Call?->status, 'type' => $Call?->type]), @js($settings), @js(['ringing' => $peerSettings?->ringing]))"
+        x-init="init_Call($wire, @js($sendingCall), @js($incomingCall), @js(['status' => $Call?->status, 'type' => $Call?->type]), @js($settings), @js($peerSettings))"
     >
 
-        @if($Call->type === 'video' && ($Call->status === 'accepted' || $sendingCall))
+        @if($Call->type === 'video' && ($sendingCall || ($incomingCall && $Call->status === 'accepted')))
             <!-- Video Feeds -->
             <div
                 wire:ignore
@@ -21,12 +21,11 @@
                         <!-- Peer Video -->
                         <div class="z-10 flex-1 rounded-md overflow-hidden relative transition-all duration-300">
                             <div class="video-call-overlay overflow-hidden rounded-md z-10 flex justify-center items-center absolute top-0 left-0 h-full w-full object-cover bg-cover bg-center">
-                                <span class="user-image z-[1] absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-700 rounded-full text-gray-500 bg-gray-800 text-lg" style="transform: translate(-50%, -50%)">
+                                <span class="user-image z-[21] absolute top-1/2 left-1/2 inline-flex items-center justify-center h-[50px] w-[50px] min-w-[35px] border border-double border-gray-700 rounded-full text-gray-500 bg-gray-800 text-lg" style="transform: translate(-50%, -50%); zoom: 0.55;">
                                     <i class="fa-duotone fa-solid fa-user"></i>
                                 </span>
-                                <i class="buffering loading fa-solid fa-circle-notch fa-spin text-white z-10"></i>
+                                <i class="buffering loading fa-solid fa-circle-notch fa-spin text-white z-[22]" style="zoom: 0.7"></i>
                             </div>
-
                             <video autoplay playsinline x-ref="peer" class="w-full h-full max-w-[300px] min-w-[300px] max-h-[165px] min-h-[165px] bg-gray-900 object-cover" style="transform: scaleX(-1)"></video>
                         </div>
 
@@ -58,10 +57,8 @@
 
 
             <!-- Caller Info -->
-            <div>
-                <div
-                    class="relative flex items-center justify-between max-w-md w-full bg-gray-100 shadow-sm rounded-md px-4 py-2 border border-gray-200"
-                >
+            <div class="relative flex flex-col gap-2 max-w-md w-full bg-gray-100 shadow-sm rounded-md px-4 py-2 border border-gray-200">
+                <div class="flex flex-row items-center justify-between gap-2">
                     <div class="flex items-center gap-x-3 pr-3 min-w-[150px]">
                         @if($Call->type === 'voice')
                             <div class="inline-flex relative">
@@ -141,7 +138,16 @@
                         </button>
                     </div>
                 </div>
+
+                @if($Call->type === 'voice')
+                    <div wire:ignore class="flex relative hidden">
+                        <audio autoplay muted playsinline class="w-full h-[20px] absolute -bottom-[6px]" style="zoom: 0.55">
+                            <source src="https://www.w3schools.com/tags/horse.mp3" type="audio/mpeg">
+                        </audio>
+                    </div>
+                @endif
             </div>
+
         </div>
     </div>
     @endif

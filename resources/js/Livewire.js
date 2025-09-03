@@ -5,7 +5,8 @@ import {
     startMicStream,
     stopCameraStream,
     startVideoStream, validateMicStream, validateCameraStream, stopMicStream, validateStreams, stopStream,
-    validateStream, cameraOnOff, start_webrtc_connection, handleOffer, handleAnswer, handleCandidate
+    validateStream, cameraOnOff, start_webrtc_connection, handleOffer, handleAnswer, handleCandidate,
+    refreshPeerSettings
 } from "./custom/script.js";
 
 if(typeof Livewire === 'object'){
@@ -98,6 +99,13 @@ if(typeof Livewire === 'object'){
         else if (data.type === 'answer') handleAnswer(data.sdp);
         else if (data.type === 'ice-candidate') handleCandidate(data.candidate);
     });
+
+    Livewire.on('refresh-peer-settings', peerSettings => {
+        peerSettings = Array.isArray(peerSettings) ? peerSettings[0] : peerSettings ;
+        refreshPeerSettings(peerSettings);
+    });
+
+
 }
 
 window.addEventListener('log-test', () => {
