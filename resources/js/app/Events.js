@@ -1,7 +1,5 @@
-import {
-    executeDropMessage,
-    manageRTC,
-} from "../custom/script.js";
+import { executeDropMessage } from "../custom/script.js";
+import { manageRTC } from "../custom/call.js";
 
 export default async function Conversation(response){
     const data = response.data;

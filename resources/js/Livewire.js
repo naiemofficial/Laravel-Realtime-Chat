@@ -1,13 +1,13 @@
+import { executeDropMessage } from "./custom/script.js";
 import {
     checkMicCameraPermission,
     requestForMicCameraPermission,
-    executeDropMessage,
     startMicStream,
     stopCameraStream,
     startVideoStream, validateMicStream, validateCameraStream, stopMicStream, validateStreams, stopStream,
     validateStream, cameraOnOff, start_webrtc_connection, handleOffer, handleAnswer, handleCandidate,
     refreshPeerSettings
-} from "./custom/script.js";
+} from "./custom/call.js";
 
 if(typeof Livewire === 'object'){
     Livewire.on('execute-drop-message', data => {

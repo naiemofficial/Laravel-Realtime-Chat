@@ -1,5 +1,6 @@
 import './bootstrap';
 import './custom/script.js';
+import './custom/call.js';
 import './Livewire.js';
 import './Socket.js';
 

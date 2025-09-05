@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('/chat');
-})->name('home');
-Route::get('/chat', [ChatController::class, 'index']);
+});
+Route::get('/', [ChatController::class, 'index'])->name('home');;
 
 
 

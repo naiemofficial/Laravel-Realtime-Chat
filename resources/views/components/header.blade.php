@@ -1,6 +1,6 @@
 @php
     $menus = [
-        'chat' => 'Message',
+        '/' => 'Messages',
     ];
 @endphp
 

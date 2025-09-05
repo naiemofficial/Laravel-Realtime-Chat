@@ -141,9 +141,7 @@
 
                 @if($Call->type === 'voice')
                     <div wire:ignore class="flex relative hidden">
-                        <audio autoplay muted playsinline class="w-full h-[20px] absolute -bottom-[6px]" style="zoom: 0.55">
-                            <source src="https://www.w3schools.com/tags/horse.mp3" type="audio/mpeg">
-                        </audio>
+                        <audio x-ref="peer" autoplay playsinline class="w-full h-[20px] absolute -bottom-[6px]" style="zoom: 0.55"></audio>
                     </div>
                 @endif
             </div>
