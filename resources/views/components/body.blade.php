@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <title>Chat App || WebSocket and Laravel</title>
+    <title>{{ config('app.name') }}</title>
     <link rel="shortcut icon" href="{{ url("/assets/icons/logo.png")  }}" type="image/x-icon">
 
     <!-- Scripts -->
