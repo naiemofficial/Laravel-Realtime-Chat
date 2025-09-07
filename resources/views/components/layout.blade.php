@@ -1,4 +1,4 @@
-<x-body class="flex flex-col h-screen">
+<x-body class="flex flex-col h-screen min-w-[1024px]">
     <x-header>
         <x-slot:headerRight>{{ $headerRight ?? '' }}</x-slot:headerRight>
     </x-header>
