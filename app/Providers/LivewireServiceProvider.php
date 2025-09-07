@@ -21,13 +21,13 @@ class LivewireServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Livewire::setScriptRoute(function ($handle) {
-        //     return Route::get('/chat/livewire/livewire.min.js', $handle);
-        // });
-        //
-        // Livewire::setUpdateRoute(function ($handle) {
-        //     return Route::post('/chat/livewire/update', $handle)
-        //         ->middleware(['web']);
-        // });
+        /*Livewire::setScriptRoute(function ($handle) {
+            return Route::get('/chat/livewire/livewire.js', $handle);
+        });
+
+        Livewire::setUpdateRoute(function ($handle) {
+            return Route::post('/chat/livewire/update', $handle)
+                ->middleware(['web']);
+        });*/
     }
 }
