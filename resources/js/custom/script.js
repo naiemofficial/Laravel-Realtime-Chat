@@ -84,7 +84,7 @@ export function executeDropMessage(from, data) {
             li.innerHTML = `
                 <div class='block'>
                     <div class='inline-block bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs'>
-                        <p class='text-sm leading-snug'>${message.text}</p>
+                        <p class='text-sm leading-snug text-left'>${message.text}</p>
                     </div>
                 </div>
             `;
@@ -124,7 +124,7 @@ export function executeDropMessage(from, data) {
             li.innerHTML = `
                 <div class='block'>
                     <div class='inline-block border border-gray-100 rounded-full'>
-                        <p class='text-sm leading-snug'>${message.text}</p>
+                        <p class='text-sm leading-snug text-left'>${message.text}</p>
                     </div>
                 </div>
             `;

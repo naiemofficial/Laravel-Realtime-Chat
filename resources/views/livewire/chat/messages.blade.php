@@ -74,7 +74,7 @@ use \Carbon\Carbon;
                                 <div class="inline-block relative group">
                                     @if($message->type === 'regular')
                                         <div class="inline-block bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs">
-                                            <p class="text-sm leading-snug">
+                                            <p class="text-sm leading-snug text-left">
                                                 {{ $message->text }}
                                             </p>
                                         </div>
@@ -105,7 +105,7 @@ use \Carbon\Carbon;
                                         </div>
                                     @else
                                         <div class="inline-block border border-gray-100 rounded-full">
-                                            <p class="text-sm leading-snug">
+                                            <p class="text-sm leading-snug text-left">
                                                 {{ $message->text }}
                                             </p>
                                         </div>
