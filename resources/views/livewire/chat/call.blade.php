@@ -16,7 +16,7 @@
                 x-data
                 x-init="setVideoFeedPosition($el)"
             >
-                <div data-aria="video-feed" class="relative max-w-lg w-full bg-gray-300 shadow-lg rounded-md overflow-hidden border border-gray-300 p-1.5">
+                <div data-aria="video-feed" class="relative max-w-lg w-full bg-[#ffffff75] shadow-lg rounded-md overflow-hidden border border-gray-300 p-1.5 backdrop-blur-md">
                     <div class="relative overflow-hidden flex justify-between items-center rounded-md bg-gray-200 gap-2">
                         <!-- Peer Video -->
                         <div class="z-10 flex-1 rounded-md overflow-hidden relative transition-all duration-300">
@@ -140,8 +140,11 @@
                 </div>
 
                 @if($Call->type === 'voice')
-                    <div wire:ignore class="flex relative hidden">
-                        <audio x-ref="peer" autoplay playsinline class="w-full h-[20px] absolute -bottom-[6px]" style="zoom: 0.55"></audio>
+                    <div wire:ignore class="relative hidden">
+                        <div class="flex gap-2 absolute -bottom-[6px]">
+                            <audio x-ref="local" autoplay playsinline class="w-full h-[20px]" style="zoom: 0.55"></audio>
+                            <audio x-ref="peer" autoplay playsinline class="w-full h-[20px]" style="zoom: 0.55"></audio>
+                        </div>
                     </div>
                 @endif
             </div>

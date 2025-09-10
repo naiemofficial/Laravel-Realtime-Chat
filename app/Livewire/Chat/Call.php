@@ -226,6 +226,7 @@ class Call extends Component
                 $this->WS_send([ 'type' => 'FUNCTION', 'function' => 'cancelDeclineEndCall', 'args' => ['by_self' => !$by_self] ]);
             }
 
+            $this->dispatch('stop-tune');
             $this->dispatch('stop-stream', $this->settings?->stream);
             $this->dispatch('execute-drop-message', message: $this->Message);
             $this->reset();
@@ -278,6 +279,7 @@ class Call extends Component
         if($this->Call?->status === 'accepted'){
             $this->sendMySettingsToPeer();
         }
+        $this->dispatch('mute-unmute', $this->settings->mic);
     }
 
     public function cameraOnOff(): void {

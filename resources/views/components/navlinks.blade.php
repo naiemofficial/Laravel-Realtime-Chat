@@ -18,6 +18,11 @@
 
                         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
                         @foreach($menus as $link => $name)
+                            @php
+                                if($link == '/' && config('app.env') === 'production'){
+                                    $link = config('app.url');
+                                }
+                            @endphp
                             <x-nav-item href="{{ $link }}">{{ $name }}</x-nav-item>
                         @endforeach
                     </div>

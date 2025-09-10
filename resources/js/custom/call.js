@@ -35,6 +35,10 @@ async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSe
 
 
 
+        // Ringtone
+        if(sendingCall) outgoingCallRinging(Call?.status === 'pending');
+        if(incomingCall) incomingCallTune(Call?.status === 'pending');
+
 
 
         // Stream for sending call
@@ -49,7 +53,8 @@ async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSe
 
                 const {mic: micStream, video: videoStream} = destructStream(stream);
                 if(Call?.type === 'voice'){
-
+                    const audioElement = callDiv?.querySelector('audio[x-ref="local"]');
+                    attachAudioStream(micStream, audioElement);
                 } else if(Call?.type === 'video'){
                     const videoElement = callDiv?.querySelector('video[x-ref="local"]');
                     attachVideoStream(videoStream, videoElement);
@@ -63,15 +68,17 @@ async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSe
             }
 
             // When incoming call
-            if(Call?.status === 'accepted'){
+            if(incomingCall && Call?.status === 'accepted'){
                 start_webrtc_connection(wire, Call, peerSettings)
             }
         }
 
         // When sending call
-        if(callDiv?.sendingCallStream !== true && sendingCall && Call?.status === 'accepted'){
-            callDiv.sendingCallStream = true;
-            start_webrtc_connection(wire, Call, peerSettings)
+        if(sendingCall){
+            if(callDiv?.sendingCallStream !== true && Call?.status === 'accepted'){
+                callDiv.sendingCallStream = true;
+                start_webrtc_connection(wire, Call, peerSettings)
+            }
         }
 
         // Visualize the stream
@@ -125,7 +132,7 @@ async function init_Call(wire, sendingCall, incomingCall, Call, settings, peerSe
                         } else {
                             // Disable action buttons
                         }
-                    } else if(peerSettings?.ringing === false){
+                    } if(peerSettings?.ringing === false){
                         // Re-try call if recipient not connected
                         if(elapsed % 3 === 0){
                             wire?.broadcastCall(true, {skipBusy: true});
@@ -423,14 +430,17 @@ export function destructStream(stream) {
 }
 
 
-function attachAudioStream(stream){
-    const audioElement = document.querySelector('#call audio');
-    if (!audioElement) return;
+function attachAudioStream(stream, audioElement){
+    if (!(stream instanceof MediaStream)) return;
+    if (!(audioElement instanceof HTMLAudioElement)) {
+        console.warn("Provided element is not a audio element");
+        return;
+    }
 
     audioElement.srcObject = stream;
     audioElement.autoplay = true;
-    console.log(stream)
-
+    audioElement.playsInline = true;
+    audioElement.muted = true; // for local playback
     audioElement.play().catch(err => {
         console.warn("Autoplay blocked, user interaction may be required:", err);
     });
@@ -444,10 +454,6 @@ function attachVideoStream(stream, videoElement) {
         return;
     }
 
-    stream.getVideoTracks()[0].addEventListener("mute", (event) => {
-        console.log(event);
-    });
-
     videoElement.srcObject = stream;
     videoElement.autoplay = true;
     videoElement.playsInline = true;
@@ -460,6 +466,22 @@ function attachVideoStream(stream, videoElement) {
     overlay?.querySelector('.user-image').classList.add('hidden');
     overlay?.querySelector('.buffering').classList.add('hidden');
 }
+
+
+export function muteUnmute(status) {
+    const call = document.getElementById('call');
+    if (!call) return;
+
+    const on = status === true || status === 'true' || status === 1 || status === '1';
+
+    const stream = call.stream;
+    if (stream) stream.getAudioTracks().forEach(track => track.enabled = on);
+
+    const localElements = call.querySelectorAll('video[x-ref="local"], audio[x-ref="local"]');
+    localElements.forEach(el => el.muted = !on);
+}
+
+
 
 
 export function cameraOnOff(status) {
@@ -567,7 +589,7 @@ export async function start_webrtc_connection(wire, Call, peerSettings) {
         // 3. Listen for remote tracks from the peer (Listener)
         connection.ontrack = (event) => {
             if (Call?.type === 'voice') {
-                console.log(peerAudio);
+                const peerAudio = document.querySelector('#call audio[x-ref="peer"]');
                 if (peerAudio && peerAudio.srcObject !== event.streams[0]) {
                     peerAudio.srcObject = event.streams[0];
                     peerAudio.play().catch(console.error);
@@ -581,6 +603,12 @@ export async function start_webrtc_connection(wire, Call, peerSettings) {
                     peerVideo.play().catch(console.error);
                     // console.log("Remote video stream received");
                 }
+
+                /*const videoTrack = event.streams[0].getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.onmute = () => console.log("Remote video muted");
+                    videoTrack.onunmute = () => console.log("Remote video unmuted");
+                }*/
             }
         }
 
@@ -741,6 +769,96 @@ export function refreshPeerSettings(settings){
     const peerVideo = document.getElementById('call')?.querySelector('video[x-ref="peer"]');
     toggleOverlay(peerVideo, settings);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// -------------------- Audio/Ringtone
+let incomingCallRingtone;
+let outgoingCallRingtone;
+export function incomingCallTune(on = true) {
+    if (on) {
+        if (!incomingCallRingtone) {
+            // incomingCallRingtone = new Audio('/chat/audio/incoming-call-tune.mp3');
+            incomingCallRingtone = new Audio('/audio/incoming-call-tune.mp3');
+            incomingCallRingtone.loop = true;
+        }
+        incomingCallRingtone.play().catch(err =>
+            console.warn('Incoming call tune failed:', err)
+        );
+    } else {
+        if (!incomingCallRingtone) return;
+        incomingCallRingtone.pause();
+        incomingCallRingtone.currentTime = 0;
+        incomingCallRingtone = null;
+    }
+}
+
+export function outgoingCallRinging(on = true) {
+    if (on) {
+        if (!outgoingCallRingtone) {
+            // outgoingCallRingtone = new Audio('/chat/audio/outgoing-call-ringing.mp3');
+            outgoingCallRingtone = new Audio('/audio/outgoing-call-ringing.mp3');
+            outgoingCallRingtone.loop = true;
+        }
+        outgoingCallRingtone.play().catch(err =>
+            console.warn('Outgoing call ringing failed:', err)
+        );
+    } else {
+        if (!outgoingCallRingtone) return;
+        outgoingCallRingtone.pause();
+        outgoingCallRingtone.currentTime = 0;
+        outgoingCallRingtone = null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

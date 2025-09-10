@@ -6,7 +6,7 @@ import {
     stopCameraStream,
     startVideoStream, validateMicStream, validateCameraStream, stopMicStream, validateStreams, stopStream,
     validateStream, cameraOnOff, start_webrtc_connection, handleOffer, handleAnswer, handleCandidate,
-    refreshPeerSettings
+    refreshPeerSettings, muteUnmute, outgoingCallRinging, incomingCallTune,
 } from "./custom/call.js";
 
 if(typeof Livewire === 'object'){
@@ -83,6 +83,12 @@ if(typeof Livewire === 'object'){
     });
 
 
+    Livewire.on('mute-unmute', (status) => {
+        status = Array.isArray(status) ? status[0] : status;
+        muteUnmute(status);
+    });
+
+
     Livewire.on('camera-on-off', (status) => {
         status = Array.isArray(status) ? status[0] : status;
         cameraOnOff(status);
@@ -103,6 +109,12 @@ if(typeof Livewire === 'object'){
     Livewire.on('refresh-peer-settings', peerSettings => {
         peerSettings = Array.isArray(peerSettings) ? peerSettings[0] : peerSettings ;
         refreshPeerSettings(peerSettings);
+    });
+
+
+    Livewire.on('stop-tune', () => {
+        incomingCallTune(false);
+        outgoingCallRinging(false);
     });
 
 
