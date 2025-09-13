@@ -12,7 +12,7 @@
                 <div class="ml-10">
                     <div class="flex items-center space-x-4">
                         <!-- Github -->
-                        <x-nav-item target="_blank" href="https://github.com/naiemofficial/Websocket-with-Laravel" class="inline-flex items-center justify-center h-[36px] w-[36px] bg-gray-700 text-white rounded-md text-xl transition duration-100 hover:bg-gray-900 m-0">
+                        <x-nav-item target="_blank" href="https://github.com/naiemofficial/Laravel-Realtime-Chat" class="inline-flex items-center justify-center h-[36px] w-[36px] bg-gray-700 text-white rounded-md text-xl transition duration-100 hover:bg-gray-900 m-0">
                             <i class="fab fa-github"></i>
                         </x-nav-item>
 
